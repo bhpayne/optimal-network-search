@@ -43,14 +43,23 @@ connections=[] # declare new list
 # the following fills all switch ports with connections to computers
 # Problem: computer X can be connected to switch Y multiple times
 # Problem: computer X may not be connected to any switch
-for switch_index in switches:
-  print ("switch index="+str(switch_index))
-  port_list=[]
-  for port_index in range(number_of_ports_per_switch):
-    port_list.append(choice(computers))
-  connections.append(port_list)    
+###for switch_index in switches:
+  ###print ("switch index="+str(switch_index))
+  ###port_list=[]
+  ###for port_index in range(number_of_ports_per_switch):
+    ###port_list.append(choice(computers))
+  ###connections.append(port_list)    
 
 # use all the ports on each computer to connect to switches
+# no computer should be connected to the same switch twice
+# each computer should be connected to a switch
+# --> the constraints center on the computer, not the switches. Thus we need to iterate through the list of computers
+for indx in switches:
+  connections.append([]) # this creates a list of empty lists
+for computer in computers:
+  for port_indx in range(number_of_ports_per_computer):
+    connections[choice(switches)].append(computer)
+    
 
 print connections
 
