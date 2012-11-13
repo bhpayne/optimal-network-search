@@ -1,5 +1,9 @@
 #!/usr/bin/python
 
+# Ben Payne
+# bpayne@lps.umd.edu
+# see effbot.org/zone/python-list.htm
+
 import os
 from random import choice
 
@@ -26,7 +30,7 @@ def create_graphviz_file(computers,switches,connections):
   return
 
 
-number_of_switches=2
+number_of_switches=100
 number_of_computers=5
 number_of_ports_per_computer=2
 number_of_ports_per_switch=4
@@ -58,8 +62,14 @@ for indx in switches:
   connections.append([]) # this creates a list of empty lists
 for computer in computers:
   for port_indx in range(number_of_ports_per_computer):
-    connections[choice(switches)].append(computer)
-    
+    which_switch_this_computer_connects_to=choice(switches)
+    if not computer in connections[which_switch_this_computer_connects_to]:     # if this computer is not already connected to this switch, then
+      connections[which_switch_this_computer_connects_to].append(computer)      # connect it
+#    else: # maybe a "while" would be better -- search for open switch
+
+# if number of switches >> number of computers, then 
+#   1) not all switches are used [and thus don't need to be drawn]
+#   2) any given computer may not be able to connect to all other computers
 
 print connections
 
