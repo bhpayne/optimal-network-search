@@ -1,0 +1,28 @@
+import os
+
+fil=open('network.gv', 'w')
+
+fil.write("##Command to produce the output: \"neato -Tpng thisfile > thisfile.png\"\n")
+fil.write("graph G {\n")
+fil.write("node [shape=box,color=red,style=bold];  c1; c2; c3; c4; c5; c6; c7;\n")
+fil.write("node [shape=circle,fixedsize=true,width=0.9,color=blue,style=bold];  s1; s2; s3;\n")
+fil.write("     c1 -- s1;\n")
+fil.write("     c1 -- s2;\n")
+fil.write("     c1 -- s3;\n")
+fil.write("     c2 -- s1;\n")
+fil.write("     c2 -- s2;\n")
+fil.write("     c3 -- s1;\n")
+fil.write("     c3 -- s3;\n")
+fil.write("     c4 -- s3;\n")
+fil.write("     c5 -- s3;\n")
+fil.write("     c6 -- s1;\n")
+fil.write("     c6 -- s2;\n")
+fil.write("     c7 -- s2;\n")
+fil.write("     c7 -- s3;\n")
+fil.write("     overlap=false\n")
+fil.write("     label=\"optimized network test\\nlayed out by Graphviz\"\n")
+fil.write("     fontsize=12;\n")
+fil.write("}\n\n")
+fil.close()
+
+os.system("neato -Tpng network.gv > network.png")
