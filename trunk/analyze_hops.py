@@ -3,6 +3,8 @@
 # Ben Payne
 # bpayne@lps.umd.edu
 
+# the purpose of this script is to take a "connections" array and determine the number of hops between end points
+
 import itertools          # for generating pairs of computers 
 
 def find_distance(computerA,computerB,connections):
