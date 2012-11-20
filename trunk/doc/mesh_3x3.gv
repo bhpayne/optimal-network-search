@@ -1,0 +1,46 @@
+##Command to produce the output: "neato -Tpng thisfile.gv > thisfile.png"
+##Command to produce the output: "circo -Tpng thisfile.gv > thisfile.png"
+graph G {
+node [shape=box,color=red,style=bold];  c0;
+node [shape=box,color=red,style=bold];  c1;
+node [shape=box,color=red,style=bold];  c2;
+node [shape=box,color=red,style=bold];  c3;
+node [shape=box,color=red,style=bold];  c4;
+node [shape=box,color=red,style=bold];  c5;
+node [shape=box,color=red,style=bold];  c6;
+node [shape=box,color=red,style=bold];  c7;
+node [shape=box,color=red,style=bold];  c8;
+node [shape=circle,fixedsize=true,width=0.9,color=blue,style=bold];  s0;
+node [shape=circle,fixedsize=true,width=0.9,color=blue,style=bold];  s1;
+node [shape=circle,fixedsize=true,width=0.9,color=blue,style=bold];  s2;
+node [shape=circle,fixedsize=true,width=0.9,color=blue,style=bold];  s3;
+node [shape=circle,fixedsize=true,width=0.9,color=blue,style=bold];  s4;
+node [shape=circle,fixedsize=true,width=0.9,color=blue,style=bold];  s5;
+node [shape=circle,fixedsize=true,width=0.9,color=blue,style=bold];  s6;
+node [shape=circle,fixedsize=true,width=0.9,color=blue,style=bold];  s7;
+node [shape=circle,fixedsize=true,width=0.9,color=blue,style=bold];  s8;
+     s0--c0;
+     s1--c1;
+     s2--c2;
+     s3--c3;
+     s4--c4;
+     s5--c5;
+     s6--c6;
+     s7--c7;
+     s8--c8;
+     s0--s1; 
+     s0--s3;
+     s1--s2;
+     s1--s4;
+     s2--s5;
+     s3--s4;
+     s3--s6;
+     s4--s7;
+     s4--s5;
+     s5--s8;
+     s6--s7;
+     s7--s8;
+     overlap=false
+     label="3x3 mesh\nlayed out by Graphviz"
+     fontsize=12;
+}
