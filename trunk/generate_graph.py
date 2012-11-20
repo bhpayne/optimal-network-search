@@ -6,6 +6,19 @@
 
 import os
 from random import choice
+import itertools
+
+# http://stackoverflow.com/questions/5360220/how-to-split-a-list-into-pairs-in-all-possible-ways
+def all_pairs(lst):
+  if len(lst) < 2:
+    yield lst
+    return
+  a = lst[0]
+  for i in range(1,len(lst)):
+    pair = (a,lst[i])
+    for rest in all_pairs(lst[1:i]+lst[i+1:]):
+      yield [pair] + rest
+# By default Python has a return stack 1000 calls deep. You are recursing on pairs of digits, so this should not be an issue until your list is almost 2000 items long. At only 50 items you get more than 5*10^31 combinations; you will run into billion-year computations long before stack depth becomes an issue. 
 
 def create_graphviz_file(computers,switches,connections):
   fil=open('network.gv', 'w')
@@ -37,6 +50,14 @@ number_of_ports_per_switch=4
 
 computers=range(number_of_computers)
 switches=range(number_of_switches)
+
+list(itertools.combinations(computers, 2))
+number_of_computer_pairs=len(list(itertools.combinations(computers, 2)))
+#>>> len(list(itertools.combinations(range(100), 2)))
+# 4950
+#>>> len(list(itertools.combinations(range(1000), 2)))
+# 499500
+# 
 
 #connections =[
 #[   1, 2, 3  ], # switch0 is connected to computers 1, 2, and 3
@@ -70,6 +91,8 @@ for computer in computers:
 # if number of switches >> number of computers, then 
 #   1) not all switches are used [and thus don't need to be drawn]
 #   2) any given computer may not be able to connect to all other computers
+for switch in connections:
+  print len.connections[switch]
 
 print connections
 
