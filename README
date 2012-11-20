@@ -1,0 +1,17 @@
+The question motivating this project is
+"What is the topology of the network which results in the lowest transmission times for an all-to-all communication?"
+The parameters are
+-number of switches
+-number of compute nodes
+-number of ports per switch
+-number of ports per compute node
+Future parameters might be
+-physical layout (3D racks and isles of racks)
+-message size
+-fault tolarance
+
+Obviously a "fully-connected" (each node connects directly to every other node) is optimal, but given fewer ports than the number of nodes this is not possible.
+
+Second-most optimal would be introducing one switch with n ports for n compute nodes. Then each node can communicate to any other node via one hop. However, when n=1,000,000 the switch is not available for purchase. Also, the single switch is a single point of failure.
+
+Thus the optimal network topology depends on real-world factors such as switches available for purchase (should we buy a lots of 24 port switches, or more 1000 port switches), and how many ports should the compute node support?
