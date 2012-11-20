@@ -1,3 +1,18 @@
+== use ==
+
+This script generates random graphs and produces plots of the graph
+python generate_graph.py
+
+This script evaluates the connections database for a given graph
+python analyze_hops.py
+
+== required software ==
+
+Python
+GraphViz
+
+== background ==
+
 The question motivating this project is
 "What is the topology of the network which results in the lowest transmission times for an all-to-all communication?"
 
