@@ -1,15 +1,19 @@
 == use ==
 
 This script generates random graphs and produces plots of the graph
-python generate_graph.py
+  python generate_graph.py
+Note: the parameters for the graph are currently hardcoded
 
 This script evaluates the connections database for a given graph
-python analyze_hops.py
+  python analyze_hops.py
+Note: the "connections" database is hardcoded currently
 
 == required software ==
 
 Python
 GraphViz
+
+Tested on Ubuntu 12.04 64bit
 
 == background ==
 
