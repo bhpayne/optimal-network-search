@@ -2,7 +2,9 @@
 
 # Ben Payne
 # bpayne@lps.umd.edu
+
 # the purpose of this script is to build a random but valid network of computers and switches
+# Constraints are
 # --> avoid switch connecting to itself
 # --> avoid computer connect to itself
 # --> avoid redundant connections

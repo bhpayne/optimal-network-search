@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# Ben Payne
+# this script is NOT in use currently
 
 compute_node_NICs_arry=[
   1,    # computer 0 has 1 empty NIC

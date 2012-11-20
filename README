@@ -1,5 +1,6 @@
 The question motivating this project is
 "What is the topology of the network which results in the lowest transmission times for an all-to-all communication?"
+
 The parameters are
 -number of switches
 -number of compute nodes
