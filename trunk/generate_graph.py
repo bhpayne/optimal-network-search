@@ -20,6 +20,7 @@
 # see effbot.org/zone/python-list.htm
 
 import os
+import random # for "random.shuffle"
 from random import choice # for "choice" in determining connections
 import itertools          # for generating pairs of computers 
 
@@ -39,26 +40,33 @@ def sanity_checks(number_of_switches,number_of_computers,number_of_ports_per_com
     exit(1) # infinite loop would occur during search
   if (number_of_switches==1) and (number_of_ports_per_switch==number_of_computers):
     print ("cross-bar network detected (number of ports per switch=number of computers, and number of switches=1")
-
+    print ("no optimization to be performed")
   
-def create_graphviz_file(computers,connections):
+def create_graphviz_file(number_of_switches,number_of_computers,connections):
   fil=open('network.gv', 'w')
 
   fil.write("##Command to produce the output: \"neato -Tpng thisfile.gv > thisfile.png\"\n")
   fil.write("graph G {\n")
-  for computer in computers:
+  for computer in range(number_of_computers):
     fil.write("node [shape=box,color=red,style=bold];  c"+str(computer)+";\n")
-  for switch in range(len(connections)):  
+  for switch in range(number_of_switches):  
     fil.write("node [shape=circle,fixedsize=true,width=0.9,color=blue,style=bold];  s"+str(switch)+";\n")
 
-  for switch_index in range(len(connections)):
-    this_switch_is_connected_to_computers=connections[switch_index][0]
-    for computer in this_switch_is_connected_to_computers:
-      #print ("s"+str(switch_index)+"--c"+str(computer))
-      fil.write("     s"+str(switch_index)+"--c"+str(computer)+";\n")
-    this_switch_is_connected_to_switches=connections[switch_index][1]
-    for other_switch in this_switch_is_connected_to_switches:
-      fil.write("     s"+str(switch_index)+"--s"+str(other_switch)+";\n")
+  for pair_index in range(len(connections)):
+    if (connections[pair_index][0]<0): # negative value for computer
+      nodeA="     c" 
+    elif (connections[pair_index][0]>0): # positive value for switch
+      nodeA="     s"
+    else:
+      print ("invalid value in connections array"+str(connections[pair_index][0]))
+    if (connections[pair_index][0]<0): # negative value for computer
+      nodeB="--c" 
+    elif (connections[pair_index][0]>0): # positive value for switch
+      nodeB="--s"
+    else:
+      print ("invalid value in connections array"+str(connections[pair_index][0]))
+    #print ("s"+str(switch_index)+"--c"+str(computer))
+    fil.write(nodeA+str(switch_index)+nodeB+str(computer)+";\n")
   fil.write("     overlap=false\n")
   fil.write("     label=\"optimized network test\\nlayed out by Graphviz\"\n")
   fil.write("     fontsize=12;\n")
@@ -66,26 +74,18 @@ def create_graphviz_file(computers,connections):
   fil.close()
   return
 
-
-number_of_switches=10
-number_of_computers=10
-number_of_ports_per_computer=3
-number_of_ports_per_switch=8
-
-sanity_checks(number_of_switches,number_of_computers,number_of_ports_per_computer,number_of_ports_per_switch)
-
-computers=range(number_of_computers)
-switches=range(number_of_switches)
-
-computer_pairs=[]
-pair_array=list(itertools.combinations(computers, 2))
-number_of_computer_pairs=len(pair_array)
+# the following is for the all-to-all network testing and currently isn't in use
+def list_all_computer_pairs(number_of_computers):
+  computers=range(number_of_computers)
+  computer_pairs=[]
+  pair_array=list(itertools.combinations(computers, 2))
+  number_of_computer_pairs=len(pair_array)
 # convert from list to array:
-for pair_indx in range(number_of_computer_pairs):
-  pair_list=[]
-  pair_list.append(pair_array[pair_indx][0])
-  pair_list.append(pair_array[pair_indx][1])
-  computer_pairs.append(pair_list)
+  for pair_indx in range(number_of_computer_pairs):
+    pair_list=[]
+    pair_list.append(pair_array[pair_indx][0])
+    pair_list.append(pair_array[pair_indx][1])
+    computer_pairs.append(pair_list)
 # For n computers there are n*(n-1)/2 pairs
 #>>> len(list(itertools.combinations(range(100), 2)))
 #       4,950
@@ -94,19 +94,55 @@ for pair_indx in range(number_of_computer_pairs):
 #>>> len(list(itertools.combinations(range(1000000), 2))) # this fails, but the answer would be
 # 499,999,500
 
-connections=[] # declare new list
+def create_arrays_for_nodes(number_of_nodes,number_of_ports_per_node,const):
+  node_arry=[]
+  for node_indx in range(1,number_of_nodes+1): # the shift by +1 is to avoid use of "0" in numeric list
+    for port_indx in range(number_of_ports_per_node):
+      node_arry.append(node_indx*const)
+  return node_arry
+
+number_of_switches=10
+number_of_computers=10
+number_of_ports_per_computer=3
+number_of_ports_per_switch=8
+
+sanity_checks(number_of_switches,number_of_computers,number_of_ports_per_computer,number_of_ports_per_switch)
+
+#switches=range(number_of_switches)
+
+
+# create 1D array of computers given the ports\
+const=-1
+computers_arry=create_arrays_for_nodes(number_of_computers,number_of_ports_per_computer,const)
+print("computers:")
+#print(computers_arry)
+#print("scrambled:")
+random.shuffle(computers_arry)
+print(computers_arry)
+
+const=1
+switch_arry=create_arrays_for_nodes(number_of_switches,number_of_ports_per_switch,const)
+print("switches:")
+#print(switch_arry)
+random.shuffle(switch_arry)
+print(switch_arry)
+
+connections=[] # declare new list for the edge pairs
+for computer_indx in range(len(computers_arry)):
+  this_pair=[]
+  this_pair.append(computers_arry[computer_indx])
+  this_pair.append(switch_arry[computer_indx])
+  connections.append(this_pair)
+
+print("connections:")
+print(connections)
 
 
 
 
 
 
-
-
-
-
-
-create_graphviz_file(computers,newconnect)
+#create_graphviz_file(computers,newconnect)
 
 #hops_between_nodes(computer_pairs,newconnect)
 
