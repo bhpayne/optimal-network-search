@@ -12,6 +12,11 @@
 # --> avoid unconnected subset networks
 # --> if (number of switches>1) then each switch must connect to at least one other switch
 
+# method used: "connections" array is a set of sub-arrays, each representing ports on a switch
+# number of computers, switches, and respective ports is static
+
+# output: graphviz file to create picture of graph
+
 # see effbot.org/zone/python-list.htm
 
 import os
