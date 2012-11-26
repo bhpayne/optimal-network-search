@@ -12,7 +12,7 @@
 # --> avoid unconnected subset networks
 # --> if (number of switches>1) then each switch must connect to at least one other switch
 
-# method used: "connections" array is a set of sub-arrays, each representing an edge (computer-switch or switch-switch)
+# method used: "connections" array is a set of sub-arrays, each representing ports on a switch
 # number of computers, switches, and respective ports is static
 
 # output: graphviz file to create picture of graph
@@ -66,6 +66,16 @@ def create_graphviz_file(computers,connections):
   fil.close()
   return
 
+def hops_between_nodes(computer_pairs,connections):
+  # option 1: exhaustive search
+    #1a: start by filling out the known distance when computer A and B are plugged into the same switch
+  #print connections
+  #print computer_pairs
+  for switch_index,switch_list in enumerate(connections):
+    print switch_list
+    pairs_on_this_switch=list(itertools.combinations(switch_list,2))
+    print pairs_on_this_switch
+  # option 2: take a random subset of computers and find the pair hopping distance
 
 number_of_switches=10
 number_of_computers=10
@@ -96,16 +106,63 @@ for pair_indx in range(number_of_computer_pairs):
 
 connections=[] # declare new list
 
+# the following fills all switch ports with connections to computers
+# Problem: computer X can be connected to switch Y multiple times
+# Problem: computer X may not be connected to any switch
+###for switch_index in switches:
+  ###print ("switch index="+str(switch_index))
+  ###port_list=[]
+  ###for port_index in range(number_of_ports_per_switch):
+    ###port_list.append(choice(computers))
+  ###connections.append(port_list)    
 
+# use all the ports on each computer to connect to switches
+# no computer should be connected to the same switch twice
+# each computer should be connected to a switch
+# --> the constraints center on the computer, not the switches. Thus we need to iterate through the list of computers
+for indx in switches:
+  connections.append([[],[]]) # this creates a list of empty lists [switch0, switch1,...] where switchX = [[computerK, computerB], [switchY]]
+for computer in computers:
+  for port_indx in range(number_of_ports_per_computer):
+    find_port=True
+    while find_port:
+      which_switch_this_computer_connects_to=choice(switches)
+      if (not computer in connections[which_switch_this_computer_connects_to][0]) and (len(connections[which_switch_this_computer_connects_to][0])+len(connections[which_switch_this_computer_connects_to][1])<number_of_ports_per_switch-1):     # if (this computer is not already connected to this switch) and (there are ), then
+        connections[which_switch_this_computer_connects_to][0].append(computer)      # connect it
+        find_port=False
+for switch in switches:
+  #for port_indx in range(number_of_ports_per_switch - len(connections[switch][0])): # fill in the remaining switch ports with connections to other switches
+    find_port=True
+    while find_port:
+      which_switch_this_switch_connects_to=choice(switches)
+      if (not switch in connections[which_switch_this_switch_connects_to][1]) and (not which_switch_this_switch_connects_to in connections[switch][1]): # and (which_switch_this_switch_connects_to != switch):     # if this switch is not already connected to this other switch), then
+        if (which_switch_this_switch_connects_to==switch): 
+          find_port=False
+          break
+        connections[which_switch_this_switch_connects_to][1].append(switch)      # connect it
+        find_port=False
+      if (len(connections[switch][0])+len(connections[switch][1]) == number_of_ports_per_switch): # this switch is full, no more connections should be made
+        print switch
+	find_port=False
 
+# if number of switches >> number of computers, then 
+#   1) not all switches are used [and thus don't need to be drawn]
+#   2) any given computer may not be able to connect to all other computers
+#   3? Having more than one path between two computers. Possible, but useful?
 
-
-
-
-
-
-
-
+# solution to problem 1, not all switches are used [and thus don't need to be drawn]
+newconnect=[]
+#newconnect2=[]
+newswitches=[]
+#newswitches2=[]
+for switch_indx in switches:
+  if len(connections[switch_indx][0])>1: # remove switches with 0 or 1 computer connections
+    newconnect.append(connections[switch_indx])
+    newswitches.append(switch_indx)
+    
+for swi in range(len(newconnect)):
+  print newconnect[swi]
+    
 create_graphviz_file(computers,newconnect)
 
 #hops_between_nodes(computer_pairs,newconnect)
