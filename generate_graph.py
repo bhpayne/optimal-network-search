@@ -20,9 +20,9 @@
 # see effbot.org/zone/python-list.htm
 
 import os
-import random # for "random.shuffle"
-from random import choice # for "choice" in determining connections
-import itertools          # for generating pairs of computers 
+import random # "random.shuffle" for reordering computers and ports, switches and ports
+#from random import choice  # for "choice" in determining connections
+import itertools           # for generating pairs of computers 
 
 def sanity_checks(number_of_switches,number_of_computers,number_of_ports_per_computer,number_of_ports_per_switch):
   # total number of ports on switches must be greater than number of compute nodes
@@ -47,9 +47,9 @@ def create_graphviz_file(number_of_switches,number_of_computers,connections):
 
   fil.write("##Command to produce the output: \"neato -Tpng thisfile.gv > thisfile.png\"\n")
   fil.write("graph G {\n")
-  for computer in range(number_of_computers):
+  for computer in range(1,number_of_computers+1):
     fil.write("node [shape=box,color=red,style=bold];  c"+str(computer)+";\n")
-  for switch in range(number_of_switches):  
+  for switch in range(1,number_of_switches+1):  
     fil.write("node [shape=circle,fixedsize=true,width=0.9,color=blue,style=bold];  s"+str(switch)+";\n")
 
   for pair_index in range(len(connections)):
@@ -58,15 +58,15 @@ def create_graphviz_file(number_of_switches,number_of_computers,connections):
     elif (connections[pair_index][0]>0): # positive value for switch
       nodeA="     s"
     else:
-      print ("invalid value in connections array"+str(connections[pair_index][0]))
-    if (connections[pair_index][0]<0): # negative value for computer
+      print ("invalid value in connections array with nodeA"+str(connections[pair_index][0]))
+    if (connections[pair_index][1]<0): # negative value for computer
       nodeB="--c" 
-    elif (connections[pair_index][0]>0): # positive value for switch
+    elif (connections[pair_index][1]>0): # positive value for switch
       nodeB="--s"
     else:
-      print ("invalid value in connections array"+str(connections[pair_index][0]))
+      print ("invalid value in connections array with nodeB"+str(connections[pair_index][1]))
     #print ("s"+str(switch_index)+"--c"+str(computer))
-    fil.write(nodeA+str(switch_index)+nodeB+str(computer)+";\n")
+    fil.write(nodeA+str(abs(connections[pair_index][0]))+nodeB+str(abs(connections[pair_index][1]))+";\n")
   fil.write("     overlap=false\n")
   fil.write("     label=\"optimized network test\\nlayed out by Graphviz\"\n")
   fil.write("     fontsize=12;\n")
@@ -142,7 +142,7 @@ print(connections)
 
 
 
-#create_graphviz_file(computers,newconnect)
+create_graphviz_file(number_of_switches,number_of_computers,connections)
 
 #hops_between_nodes(computer_pairs,newconnect)
 
