@@ -1,11 +1,20 @@
 # Ubuntu 12.04 64bit:
+
+# NetworkX
 # http://pypi.python.org/pypi/networkx/
-# matplotlib.org/faq/installing_faq.html
 sudo apt-get install python-setuptools
 sudo easy_install networkx-1.7-py2.7.egg 
+
+# Matplotlib
+# matplotlib.org/faq/installing_faq.html
 sudo apt-get build-dep python-matplotlib
 sudo apt-get install git
 git clone git://github.com/matplotlib/matplotlib.git
 cd matplotlib
 sudo python setup.py install
 
+# PyGraphViz
+# http://pypi.python.org/pypi/pygraphviz/
+tar zxf pygraphviz-1.1.tar.gz 
+sudo apt-get install libgraphviz-dev
+sudo python setup.py install
