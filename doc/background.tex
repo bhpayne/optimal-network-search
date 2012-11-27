@@ -215,7 +215,23 @@ If each endpoint has only one network connection, then we can model a switch-onl
 
 \section{random network creation}
 
-For a given {(number of computers), (number of ports per computer), (number of ports per switch)}, should random computers be plugged into random port switches, or should random switches be connected first?
+For a given \{(number of computers), (number of ports per computer), (number of ports per switch)\}, should random computers be plugged into random port switches, or should random switches be connected first?
+
+\ \\
+``connections'' database methods:
+\begin{itemize}
+ \item each switch is an sub-array of the connections array. The elements of each sub-array denote which computer the switch is plugged into. 
+ \item connections pairs: computer--switch and switch-switch. The connections array has sub-arrays of size 2 for each edge of the graph (nodes are either computers or switches).
+ \begin{itemize}
+  \item unordered pairs of positive (switch) and negative (computer) integer indices
+ \end{itemize}
+
+\end{itemize}
+Features needed:
+ \begin{itemize}
+  \item supports switches having arbitrary port count (not all switches must have same number of ports
+ \end{itemize}
+
 
 \ \\
 Whether local symmetry (same number of computers plugged into each switch) is a hinderance, benefit, or irrelevant is not clear to me.
