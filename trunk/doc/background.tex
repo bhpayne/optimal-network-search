@@ -40,7 +40,7 @@
 
 %\maketitle % declares end of title page
 
-%\tableofcontents
+\tableofcontents
 
 %\newpage
 
@@ -53,6 +53,31 @@ There are two methods to model a network:
 \end{itemize}
 For this model I will be using a database of connections.
 
+\subsection{problem}
+
+We want an all-to-all network. 
+
+An optimal all-to-all design would have each compute node with $N-1$ ports and no switches (0 hops).
+\begin{figure}[h!]
+\begin{center}
+(a)\ \includegraphics[scale=0.2]{pictures/N2_n1_M0_mNA}\ \ \ 
+(b)\includegraphics[scale=0.2]{pictures/N3_n1_M0_mNA}\ \ \ 
+(c)\ \includegraphics[scale=0.2]{pictures/N4_n1_M0_mNA}\ \ \ 
+(d)\includegraphics[scale=0.2]{pictures/N5_n1_M0_mNA}\\*
+\caption{increasing the number of nodes. Doesn't scale well due to limited number of ports on each compute node ($n<N$).}
+\end{center}
+\end{figure}
+For $N>1000$ this simplisitic approach is not feasiable. Thus we introduce switches.
+\begin{figure}[h!]
+\begin{center}
+(a)\includegraphics[scale=0.2]{pictures/N4_n1_M1_m4}\ \ \ 
+(b)\includegraphics[scale=0.2]{pictures/N6_n1_M2_m4}\\*
+\caption{adding switches. Doesn't scale well due to limited number of ports per switch ($m<N$). Also, conjestion (a,b) and bisection bandwidth (a) are poor.}
+\end{center}
+\end{figure}
+
+To reduce conjestion and increase bisection bandwidth, add more switches. Also increase the number of ports per compute node. Then the optimization problem becomse non-trivial.
+
 \subsection{objectives}
 
 If I can show a given topology is better than some other, that is useful.
@@ -61,35 +86,38 @@ If I can show how one switch versus another (differentiated by number of ports) 
 
 \subsection{Does Topology matter? A toy model example}
 
-An optimal all-to-all design would have each compute node with $N-1$ ports and no switches (0 hops). For N>1000 this becomes difficult. Thus we introduce switches.
-
 Suppose now we have $N=5$ compute nodes with 1 port each. Then the optimal network design (fewest hops) is to have a 5 port switch:
-
+\begin{figure}[h!]
 \begin{center}
-\includegraphics[scale=0.2]{pictures/S1_C5.png}\\*
-\footnotesize{Here number of hops is 1 for each compute node, with 10 pairs (=5*4/2).}
+\includegraphics[scale=0.2]{pictures/N5_n1_M1_m5.png}\\*
+\caption{Here number of hops is 1 for each compute node, with 10 pairs (=5*4/2).}
 \end{center}
+\end{figure}
 
 The other extreme would be to use five of these same switches with only one compute node per switch:
-
+\begin{figure}[h!]
 \begin{center}
-\includegraphics[scale=0.2]{pictures/S5_C5.png}\\*
-\footnotesize{Here number of hops is 2 for each compute node.}
+\includegraphics[scale=0.2]{pictures/N5_n1_M5_m5.png}\\*
+\caption{Here number of hops is 2 for each compute node.}
 \end{center}
+\end{figure}
 Clearly we are spending too much money on switches for the same number of compute nodes. However, this increased hop count (2) also lowers conjestion.
 
 As a compromise, we can use two switches and increase the number of compute nodes:
 
+\begin{figure}[h!]
 \begin{center}
-\includegraphics[scale=0.2]{pictures/S2_C8.png}\\*
-\footnotesize{8 nodes and 2 switches: 12 pairs with 1 hop, 16 pairs with 2 hops.}
+\includegraphics[scale=0.2]{pictures/N8_n1_M2_m5.png}\\*
+\caption{8 nodes and 2 switches: 12 pairs with 1 hop, 16 pairs with 2 hops.}
 \end{center}
+\end{figure}
 
+\begin{figure}[h!]
 \begin{center}
-\includegraphics[scale=0.2]{pictures/S3_C9.png}\\*
-\footnotesize{1 or 2 hops, 9 nodes and 3 switches.}
+\includegraphics[scale=0.2]{pictures/N9_n1_M4_m5.png}\\*
+\caption{1 or 2 hops, 9 nodes and 3 switches.}
 \end{center}
-
+\end{figure}
 Notice a few constraints were followed:
 \begin{itemize}
  \item each switch has same number of ports
@@ -189,7 +217,13 @@ node [shape=circle,fixedsize=true,width=0.9,color=blue,style=bold];  s8;
 \end{comment}
 Mesh networks are well-characterized. ``Meshes have O(n) cost, O(sqrt(n)) bisection bandwidth, O(n) aggregate bandwidth, and O(sqrt(n)) latency.''
 
-\includegraphics[scale=.5]{pictures/mesh.png}
+\begin{figure}[h!]
+\begin{center}
+ \includegraphics[scale=.5]{pictures/mesh}
+\end{center}
+\end{figure}
+
+
 
 \subsection{Hypercube}
 
@@ -256,6 +290,8 @@ Random connections lead to unexpected paths. This could be good, bad, or inconse
 When a switch has had all of its computers touched for a given iteration, then we should mark that switch as ``touched'' (doesn't need to be queried again for current iteration). That is, mark a switch to indicate ``all locally-attached computers have number of hops known.'' This should reduce search time.
 
 \section{Maximum and Minimum number switches needed}
+How many switches ($M$) are needed when each switch has $m$ ports? (Assume $m<(N-1)$.)
+
 Variables: 
 \begin{itemize}
  \item $n$ = number ports per compute node
@@ -270,9 +306,30 @@ For $N$ compute nodes, how many switches $M$ are needed when each switch has $m$
 
 \textbf{Solution 1}: to get an all-to-all network, each node should connect to a tree with $(N-1)$ endpoints (bisection bandwidth is thus maximized). To acheive this, start with one compute node and a switch with $m$ ports (for this example let $m=5$). At this tree level ($k=1$) we have $m=5$, $M'=1$, and $N-1=4$. ($M'$ refers to the number of switches for this one compute node).
 
-$m=5$, $M'=1+4$, $N-1=4*4$ (tree level $k=2$). 
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.3]{pictures/N5_n1_M1_m5_tree}
+\label{fig:tree_k1}
+ \caption{$m=5$, $M'=1$, $N-1=4$ (tree level $k=1$). }
+\end{center}
+\end{figure}
 
-$m=5$, $M'=1+4+4^2$, $N-1=4^3$ (tree level $k=3$). 
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.3]{pictures/N17_n1_M5_m5_tree}
+\label{fig:tree_k2}
+ \caption{$m=5$, $M'=1+4$, $N-1=4*4$ (tree level $k=2$). }
+\end{center}
+\end{figure}
+
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.3]{pictures/N65_n1_M21_m5_tree}
+\label{fig:tree_k3}
+ \caption{$m=5$, $M'=1+4+4^2$, $N-1=4^3$ (tree level $k=3$). }
+\end{center}
+\end{figure}
 
 Generalizing, the number of compute nodes the one we are dealing with can connect to is
 \begin{equation}
@@ -297,6 +354,7 @@ We can solve for $k$ from Eq.~\ref{eq:Nminus1k}
 \end{equation}
 \begin{equation}
  k=\frac{\log(N-1)}{\log(m-1)}
+ \label{eq:k_n1}
 \end{equation}
 valid values: $m>2$ and $N>2$.
 
@@ -304,13 +362,13 @@ For Matlab/Octave,
 \begin{verbatim}
  a=1:ceil(log(N-1)/log(m-1)); M_max=N*sum((m-1).^(a-1))
 \end{verbatim}
-
+Note: use of ``ceil'' gives worse case scenario in which there are empty switch ports. This equation is accurate when Eq.~\ref{eq:k_n1} is an integer (then ``ceil'' is not used).
 
 \textbf{Solution 2}: the minimum number of switches needed can be found by daisy-chaining switches together. We can enumerate this by seeing how many compute nodes can be attached to 1 switch, then 2 switches, and so on. 
 
 \begin{figure}[h!]
 \begin{center}
-asdf
+\includegraphics[scale=0.3]{pictures/N5_n1_M1_m5}
 \label{fig:neq15}
  \caption{$m=5$, $M=1$, $N=5$}
 \end{center}
@@ -318,7 +376,7 @@ asdf
 
 \begin{figure}[h!]
 \begin{center}
-asdf
+\includegraphics[scale=0.3]{pictures/N8_n1_M2_m5}
 \label{fig:neq18}
  \caption{$m=5$, $M=2$, $N=4+4=8$}
 \end{center}
@@ -326,7 +384,7 @@ asdf
 
 \begin{figure}[h!]
 \begin{center}
-asdf
+\includegraphics[scale=0.3]{pictures/N11_n1_M3_m5}
 \label{fig:neq111}
  \caption{$m=5$, $M=3$, $N=4+3+4$}
 \end{center}
@@ -334,7 +392,7 @@ asdf
 
 \begin{figure}[h!]
 \begin{center}
-asdf
+\includegraphics[scale=0.3]{pictures/N14_n1_M4_m5}
 \label{fig:neq114}
  \caption{$m=5$, $M=4$, $N=4+3+3+4$}
 \end{center}
@@ -369,22 +427,39 @@ What is the maximum switch count when there are two ports per compute node ($n=2
 
 \textbf{Solution 1} (maximum number of switches): Start with one compute node and a switch with $m$ ports (for this example let $m=5$). At this tree level ($k=1$) we have $m=5$, $M'=2$, and $N-1=2*4=8$. ($M'$ refers to the number of switches for this one compute node).
 
+
 \begin{figure}[h!]
 \begin{center}
-asdf
+\includegraphics[scale=0.3]{pictures/N9_n2_M2_m5_tree}
+\label{fig:ngt1k1}
+ \caption{$m=5$, $M'=2$, $N-1=2*4$ (tree level $k=1$). }
+\end{center}
+\end{figure}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.3]{pictures/N33_n2_M10_m5_tree}
 \label{fig:ngt1k2}
  \caption{$m=5$, $M'=2+2*4$, $N-1=2*4*4$ (tree level $k=2$). }
 \end{center}
 \end{figure}
 
+% \begin{figure}[h!]
+% \begin{center}
+% \includegraphics[scale=0.3]{pictures/}
+% \label{fig:ngt1k2}
+%  \caption{$m=5$, $M'=2+2*4$, $N-1=2*4*4$ (tree level $k=2$). }
+% \end{center}
+% \end{figure}
 
-\begin{figure}[h!]
-\begin{center}
-asdf
-\label{fig:ngt1k3}
- \caption{$m=5$, $M'=2+2*4+4^2$, $N-1=2*4^3$ (tree level $k=3$). }
-\end{center}
-\end{figure}
+
+% \begin{figure}[h!]
+% \begin{center}
+% \includegraphics[scale=0.3]{pictures/}
+% \label{fig:ngt1k3}
+%  \caption{$m=5$, $M'=2+2*4+4^2$, $N-1=2*4^3$ (tree level $k=3$). }
+% \end{center}
+% \end{figure}
 
 Generalizing, the number of nodes this one can connect to is
 \begin{equation}
@@ -408,22 +483,24 @@ and we can solve Eq.~\ref{eq:Nminus1kngt1} to find $k$
 \end{equation}
 \begin{equation}
  k=\frac{\log((N-1)/n)}{\log(m-1)}
+ \label{eq:k_many_n}
 \end{equation}
 
 For Matlab/Octave,
 \begin{verbatim}
 a=1:ceil(log((N-1)/n)/log(m-1)); M_max=N*n*sum((m-1).^(a-1))
 \end{verbatim}
+Note: use of ``ceil'' gives worse case scenario in which there are empty switch ports. This equation is accurate when Eq.~\ref{eq:k_many_n} is an integer (then ``ceil'' is not used).
 
 The maximum number of switches as given by Eq.~\ref{eq:maximum_ngt1} is expected to be less than the value from Eq.~\ref{eq:maximum_neq1} since there are more ports supplied at the compute node.
 
-\textbf{Solution 2} (minimum number of switches): Again we will start with $n=2$ and find how many compute nodes are supported with 1 switch, then 2 switches, and so on. Here we will assume $m=$. We cannot use one switch for two compute nodes because it violates our earlier assumption that no compute node should connect to the same switch twice.
+\textbf{Solution 2} (minimum number of switches): Again we will start with $n=2$ and find how many compute nodes are supported with 1 switch, then 2 switches, and so on. Here we will assume $m=4$. We cannot use one switch for two compute nodes because it violates our earlier assumption that no compute node should connect to the same switch twice.
 
 With two switches, we can connect 4 compute nodes.
 
 \begin{figure}[h!]
 \begin{center}
-asdf
+\includegraphics[scale=0.3]{pictures/N4_n2_M2_m4}
 \label{fig:ngt14}
  \caption{$m=4$, $M=2$, $N=4$.}
 \end{center}
@@ -432,13 +509,31 @@ asdf
 
 \begin{figure}[h!]
 \begin{center}
-asdf
+\includegraphics[scale=0.3]{pictures/N6_n2_M3_m4}
 \label{fig:ngt16}
  \caption{$m=4$, $M=3$, $N=6$.}
 \end{center}
 \end{figure}
 
-Clearly this becomes a mess to enumerate systematically. The important point is that the minimum number of switches is higher when $n>1$. This is to be expected since there are more connections per compute node. Compare 
+Clearly this becomes a mess to enumerate systematically. The important point is that the minimum number of switches is higher when $n>1$. This is to be expected since there are more connections per compute node. Compare Fig.~\ref{fig:ngt14},~\ref{fig:ngt16} and Fig.~\ref{fig:fewer_switches_M1},~\ref{fig:fewer_switches_M2}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.3]{pictures/N4_n1_M1_m4}
+\label{fig:fewer_switches_M1}
+ \caption{$m=4$, $M=1$, $N=4$.}
+\end{center}
+\end{figure}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.3]{pictures/N6_n1_M2_m4}
+\label{fig:fewer_switches_M2}
+ \caption{$m=4$, $M=2$, $N=6$.}
+\end{center}
+\end{figure}
+
+
 
 \ \\
 As an example using the same parameters as before, when $N=1000$ and $m=24$, the maximum number of switches is now 72,000 (solution 1) and the minimum is greater than the minimum found when $n=1$. The maximum was expected to decrease (compared to the maximum for $n=1$) since there are more ports at the compute node.
@@ -449,7 +544,7 @@ As a check, the difference between the maximum and minimum number of switches sh
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[scale=.3]{pictures/maximum_number_of_switches_needed_versus_compute_node_port_count_for_1000_compute_nodes_and_4_ports_per_switch_semilogx}
-\label{fig:ngt16}
+\label{fig:max}
  \caption{$m=4$, $M=3$, $N=6$.}
 \end{center}
 \end{figure}
