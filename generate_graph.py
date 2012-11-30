@@ -20,6 +20,7 @@
 # see effbot.org/zone/python-list.htm
 
 import os
+import pickle # serialize data output
 import random # "random.shuffle" for reordering computers and ports, switches and ports
 from random import choice  # for "choice" in determining connections
 import itertools           # for generating pairs of computers 
@@ -42,38 +43,6 @@ def sanity_checks(number_of_switches,number_of_computers,number_of_ports_per_com
     print ("[FN] cross-bar network detected (number of ports per switch=number of computers, and number of switches=1")
     print ("no optimization to be performed")
   
-def create_graphviz_file(number_of_switches,number_of_computers,connections):
-  fil=open('network.gv', 'w')
-
-  fil.write("##Command to produce the output: \"neato -Tpng thisfile.gv > thisfile.png\"\n")
-  fil.write("graph G {\n")
-  for computer in range(1,number_of_computers+1):
-    fil.write("node [shape=box,color=red,style=bold];  c"+str(computer)+";\n")
-  for switch in range(1,number_of_switches+1):  
-    fil.write("node [shape=circle,fixedsize=true,width=0.9,color=blue,style=bold];  s"+str(switch)+";\n")
-
-  for pair_index in range(len(connections)):
-    if (connections[pair_index][0]<0): # negative value for computer
-      nodeA="     c" 
-    elif (connections[pair_index][0]>0): # positive value for switch
-      nodeA="     s"
-    else:
-      print ("[FN] invalid value in connections array with nodeA"+str(connections[pair_index][0]))
-    if (connections[pair_index][1]<0): # negative value for computer
-      nodeB="--c" 
-    elif (connections[pair_index][1]>0): # positive value for switch
-      nodeB="--s"
-    else:
-      print ("[FN] invalid value in connections array with nodeB"+str(connections[pair_index][1]))
-    #print ("s"+str(switch_index)+"--c"+str(computer))
-    fil.write(nodeA+str(abs(connections[pair_index][0]))+nodeB+str(abs(connections[pair_index][1]))+";\n")
-  fil.write("     overlap=false\n")
-  fil.write("     label=\"optimized network test\\nlayed out by Graphviz\"\n")
-  fil.write("     fontsize=12;\n")
-  fil.write("}\n\n")
-  fil.close()
-  return
-
 # the following is for the all-to-all network testing and currently isn't in use
 def list_all_computer_pairs(number_of_computers):
   computers=range(number_of_computers)
@@ -196,20 +165,13 @@ else:
 # at this point, if too many switches are given, there could exist switches which are connected to 0 or 1 computers. 
 # to do: remove unused switches and switches connected to only one computer
 
-create_graphviz_file(number_of_switches,number_of_computers,connections)
 
 #hops_between_nodes(computer_pairs,newconnect)
 
-#neato - filter for drawing undirected graphs
-os.system("neato -Tpng network.gv > network_neato.png")
-#twopi - filter for radial layouts of graphs
-os.system("twopi -Tpng network.gv > network_twopi.png")
-#circo - filter for circular layout of graphs
-os.system("circo -Tpng network.gv > network_circo.png")
-#fdp - filter for drawing undirected graphs
-os.system("fdp -Tpng network.gv > network_fdp.png")
-#sfdp - filter for drawing large undirected graphs
-os.system("sfdp -Tpng network.gv > network_sfdp.png")
-
+output=open('data.pkl','wb')
+pickle.dump(number_of_switches,output)
+pickle.dump(number_of_computers,output)
+pickle.dump(connections,output)
+output.close()
 
 # EOF
