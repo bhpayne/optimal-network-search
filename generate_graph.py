@@ -20,10 +20,10 @@
 # see effbot.org/zone/python-list.htm
 
 import os
-import pickle # serialize data output
 import random # "random.shuffle" for reordering computers and ports, switches and ports
 from random import choice  # for "choice" in determining connections
 import itertools           # for generating pairs of computers 
+import networkgraphio as ngio # Ben's module for graph input/output
 
 def sanity_checks(number_of_switches,number_of_computers,number_of_ports_per_computer,number_of_ports_per_switch):
   # total number of ports on switches must be greater than number of compute nodes
@@ -168,10 +168,6 @@ else:
 
 #hops_between_nodes(computer_pairs,newconnect)
 
-output=open('data.pkl','wb')
-pickle.dump(number_of_switches,output)
-pickle.dump(number_of_computers,output)
-pickle.dump(connections,output)
-output.close()
+ngio.writeGraphToFile(number_of_switches,number_of_computers,connections)
 
 # EOF
