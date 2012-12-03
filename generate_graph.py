@@ -22,7 +22,6 @@
 import os
 import random # "random.shuffle" for reordering computers and ports, switches and ports
 from random import choice  # for "choice" in determining connections
-import itertools           # for generating pairs of computers 
 import networkgraphio as ngio # Ben's module for graph input/output
 
 def sanity_checks(number_of_switches,number_of_computers,number_of_ports_per_computer,number_of_ports_per_switch):
@@ -43,26 +42,6 @@ def sanity_checks(number_of_switches,number_of_computers,number_of_ports_per_com
     print ("[FN] cross-bar network detected (number of ports per switch=number of computers, and number of switches=1")
     print ("no optimization to be performed")
   
-# the following is for the all-to-all network testing and currently isn't in use
-def list_all_computer_pairs(number_of_computers):
-  computers=range(number_of_computers)
-  computer_pairs=[]
-  pair_array=list(itertools.combinations(computers, 2))
-  number_of_computer_pairs=len(pair_array)
-# convert from list to array:
-  for pair_indx in range(number_of_computer_pairs):
-    pair_list=[]
-    pair_list.append(pair_array[pair_indx][0])
-    pair_list.append(pair_array[pair_indx][1])
-    computer_pairs.append(pair_list)
-# For n computers there are n*(n-1)/2 pairs
-#>>> len(list(itertools.combinations(range(100), 2)))
-#       4,950
-#>>> len(list(itertools.combinations(range(1000), 2)))
-#     499,500
-#>>> len(list(itertools.combinations(range(1000000), 2))) # this fails, but the answer would be
-# 499,999,500
-
 def create_arrays_for_nodes(number_of_nodes,number_of_ports_per_node,const):
   node_arry=[]
   for node_indx in range(1,number_of_nodes+1): # the shift by +1 is to avoid use of "0" in numeric list
