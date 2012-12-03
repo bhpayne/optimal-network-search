@@ -20,12 +20,11 @@
 # see effbot.org/zone/python-list.htm
 
 import os
-import pickle # serialize data output
-# import cPickle as pickle # "upto 1000 times faster because it is in C"
 import random # "random.shuffle" for reordering computers and ports, switches and ports
 from random import choice  # for "choice" in determining connections
 import itertools           # for generating pairs of computers 
-  
+import networkgraphio as ngio
+
 def create_graphviz_file(number_of_switches,number_of_computers,connections):
   fil=open('network.gv', 'w')
 
@@ -58,12 +57,8 @@ def create_graphviz_file(number_of_switches,number_of_computers,connections):
   fil.close()
   return
 
-pkl_file=open('data.pkl','rb') # read
-number_of_switches=pickle.load(pkl_file)
-number_of_computers=pickle.load(pkl_file)
-connections=pickle.load(pkl_file)
-pkl_file.close()
-
+number_of_switches,number_of_computers,connections=ngio.readGraphFromFile()
+  
 create_graphviz_file(number_of_switches,number_of_computers,connections)
 
 #neato - filter for drawing undirected graphs
