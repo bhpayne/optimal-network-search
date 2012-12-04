@@ -1,0 +1,21 @@
+Dengiz did many papers in this area; see
+https://www.baskent.edu.tr/~bdengiz/public.html
+
+32.  Berna Dengiz, Fulya Altiparmak And Alice E. Smith, "Genetic Algorithms Design of Networks Considering All Terminal Reliability", The Sixth Industrial Engineering Research Conference Proceedings IERC’97, Miami Beach, Florida, USA, May 17-18, 1997, 30-35.
+ 
+33.  Berna Dengiz, Fulya Altiparmak And Alice E. Smith, "A Genetic Algorithm Approach to Optimal Topological Design of All Terminal Networks", Proceedings of the Artificial Neural Networks in Engineering Conference ANNIE`95, University of Missouri-Rolla, St. Louis, Missouri, USA, Nov.12-15, 1995, 405-411.
+
+29.  Fulya Altiparmak, Berna Dengiz, And Alice E. Smith, “Reliability Optimization of Computer Communication Networks Using Genetic Algorithms”,1998, IEEE International Conference on Systems, Man, and Cybernetics- Intelligent Systems For Humans In A Cyberworld”,SMC’98, Hyatt Regency La Jolla, San Diego, California, USA, October 11-14,  1998, 4676-4681.
+ 
+30.  Berna Dengiz, Fulya Altiparmak And Alice E. Smith, "Local Search Genetic Algorithm for Optimization of Highly Reliable Communication Networks", Proceedings of the seventh International Conference on Genetic Algorithms, ICGA’97, Michigan State University, East Lansing, USA, July 19-23, 1997,  650-657.
+
+18.  Fulya. Altiparmak, Mitsuo. GEN, Berna Dengiz, Alice. E. Smith, “Design of Reliable Networks by a Genetic Algorithm”, Conference on Society of Plant Engineers in Japan (SOPEJ), November 28-29, Kyoto, JAPAN, 2003.
+
+
+
+
+21.  Fulya Altiparmak, M. Gen, Berna Dengiz & Alice E. Smith, , “A Network-Based Genetic Algorithm for Design of Communication Networks”, Journal of Society of Plant Engineers Japan, (15)4. 184-190, 2004.
+
+30.  Berna Dengiz, Fulya Altiparmak, Akif A. Bulgak, “Optimization of Stochastic Systems Using Genetic Algorithms”, Transactions on Operational Research, (9-10) 1-2:43-62, 1998.
+
+33.  Berna Dengiz, Fulya Altiparmak , Alice E.Smith, "Local Search Genetic Algorithm For Optimal Design of Reliable Networks", IEEE Transactions on Evolutionary Computation, Vol 1 , No.3, pp. 179-188, 1997(SCI).
