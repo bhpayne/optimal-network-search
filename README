@@ -1,12 +1,15 @@
 == use ==
 
-This script generates random graphs and produces plots of the graph
-  python generate_graph.py
-Note: the parameters for the graph are currently hardcoded
+# This script generates random graphs and produces plots of the graph
+python generate_graph.py
+# Note: the parameters for the graph are currently hardcoded
+python generate_graphViz_plot.py
 
-This script evaluates the connections database for a given graph
-  python analyze_hops.py
-Note: the "connections" database is hardcoded currently
+# not currently working:
+python fitness_function_all_to_all_hops.py
+python fitness_function_bisection_bandwidth.py
+python fitness_function_AtoB_hops.py
+python make_permutations_to_graph.py
 
 == required software ==
 
