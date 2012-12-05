@@ -9,6 +9,8 @@ import networkgraphio as ngio # Ben's module for graph input/output
 #from random import sample  # for "choice" in determining connections
 import random
 
+# note: this can be replaced with
+# http://networkx.lanl.gov/reference/generated/networkx.algorithms.swap.double_edge_swap.html#networkx.algorithms.swap.double_edge_swap
 def swap_ports(number_of_switches,number_of_computers,connections):
   #edges_returned=sample(connections,2) # get two random edges from the connections array
   edgeA=connections.pop(random.randrange(len(connections))) # get a random edge from the connections array
