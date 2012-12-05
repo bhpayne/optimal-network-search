@@ -55,7 +55,16 @@ For this model I will be using a database of connections.
 
 \subsection{problem}
 
-We want an all-to-all network. 
+All possible compute bottlenecks:
+\begin{itemize}
+ \item CPU clock rate
+ \item memory (L1, L2, RAM, disk) access latency
+ \item memory (L1, L2, RAM, disk) access bandwidth
+ \item network bandwidth
+ \item network latency
+\end{itemize}
+
+We want an efficient and reasonable all-to-all network. 
 
 An optimal all-to-all design would have each compute node with $N-1$ ports and no switches (0 hops).
 \begin{figure}[h!]
@@ -83,6 +92,8 @@ To reduce conjestion and increase bisection bandwidth, add more switches. Also i
 If I can show a given topology is better than some other, that is useful.
 
 If I can show how one switch versus another (differentiated by number of ports) affects performance, that is useful.
+
+Note: although this model is useful for all-to-all communication measurement, there are not inherent constraints as far as applying this same model to other interests. You can use whatever fitness function you can define.
 
 \subsection{Does Topology matter? A toy model example}
 
@@ -138,20 +149,8 @@ The parameter space includes
 \end{itemize}
 Metrics:
 \begin{itemize}
- \item hop count for each pair\\
- How to measure hop count for all pairs:
-\begin{itemize}
- \item \href{http://en.wikipedia.org/wiki/Floyd\%E2\%80\%93Warshall_algorithm}{http://en.wikipedia.org/wiki/Floyd\%E2\%80\%93Warshall\_algorithm}
- \item \href{http://www.cs.rochester.edu/u/nelson/courses/csc_173/graphs/apsp.html}{http://www.cs.rochester.edu/u/nelson/courses/csc\_173/graphs/apsp.html}
- \item \href{http://stackoverflow.com/questions/5249857/all-pairs-all-paths-on-a-graph}{http://stackoverflow.com/questions/5249857/all-pairs-all-paths-on-a-graph}
-\end{itemize}
-Might be able to get away with finding average hop count and maximum hop count if (1) that is all we care about and (2) there's a faster algorithm for those counts.
-%  \begin{itemize}
-%   \item average hop count
-%   \item maximum hop count
-%  \end{itemize}
- \item bisection bandwidth\\
- How to measure bisection bandwidth: chose a random set of half the switches. Move these to one side and determine how many cuts need to be made to separate the two halves.
+ \item hop count for each pair
+ \item bisection bandwidth
 \end{itemize}
 
 
@@ -258,6 +257,8 @@ If the topology turns out to be scale free, then we wouldn't need to model 1E6 e
 \section{more than one port per endpoint}
 
 If each endpoint has only one network connection, then we can model a switch-only network. A switch with 4 ports not connected to other switches would have 4 endpoints.
+
+This might simplify the analysis, but here we model compute nodes with more than one port. Then it is necessary to include both ``switch'' and ``compute'' type nodes.
 
 \section{random network creation}
 
@@ -574,7 +575,90 @@ As a check, the difference between the maximum and minimum number of switches sh
  print -deps maximum_number_of_switches_needed_versus_compute_node_port_count_for_1000_compute_nodes_and_4_ports_per_switch_loglog.eps
 \end{verbatim}
  
+\section{network alterations}
 
+\subsection{swap computer connections}
+
+\begin{enumerate}
+ \item pick random pair from connections database {[}cA, s1]
+ \item pick random pair from connections database {[}cB, s2]
+ \item check that (cA != cB) and (s1 != s2)
+ \item check that the suggested rearrange ``{[}cA, s1] and {[}cB, s2] transform to {[}cA, s2] and {[}cB, s1] in connections database'' doesn't create an invalid network (i.e., more than one of the compute ports plugged into the same switch)
+ \item rearrange: {[}cA, s1] and {[}cB, s2] transform to {[}cA, s2] and {[}cB, s1] in connections database
+\end{enumerate}
+
+Note: we actually could let the evolution include ``invalid'' networks (i.e., multiple computer ports plugged into same switch). However, this would probably result in a longer evolution (if the optimal network doesn't include this redundancy).
+
+\subsection{swap switch connections}
+
+\begin{enumerate}
+ \item pick random pair from connections database {[}s1, X]
+ \item pick random pair from connections database {[}s2, Y]
+ \item check that (X != Y) and (s1 != s2)
+ \item check that the suggested rearrange ``{[}s1, X] and {[}s2, Y] transform to {[}s2, X] and {[}s1, Y] in connections database'' doesn't create an invalid network (i.e., more than one of the compute ports plugged into the same switch)
+ \item rearrange: {[}s1, X] and {[}s2, Y] transform to {[}s1, Y] and {[}s2, X] in connections database
+\end{enumerate}
+
+It appears that ``swap switch connections'' and ``swap computer connections'' have sufficient overlap that they can be merged to one routine.
+
+\subsection{swapping sets of connections on switches}
+
+\begin{enumerate}
+ \item pick random pair from connections database {[}s1, X1]
+ \item pick random pair from connections database with same switch, {[}s1, X2]
+ \item pick random pair from connections database {[}s2, Y1]
+ \item pick random pair from connections database with same switch, {[}s1, Y2]
+ \item check that (s1 != s2) and  (X1 != Y1) and (X1 != Y2) and (X2 != Y1)\\
+ Note that we don't have to check either (X1 != X2) or (Y1 != Y2) as this is done when the initial valid network is created
+ \item check that the suggested rearrange doesn't create an invalid network 
+ \item rearrange: {[}s1, X1], {[}s1, X2], {[}s2, Y1], {[}s2, Y2] transform to {[}s1, Y1], {[}s1, Y2], {[}s2, X1], {[}s2, X2] in connections database
+\end{enumerate}
+
+Q: is swapping multiple ports between two switches distinct from performing the same number of swaps on individual port pairs on switches?\\
+For example,\\
+``{[}s1, X1], {[}s1, X2], {[}s2, Y1], {[}s2, Y2] transform to {[}s1, Y1], {[}s1, Y2], {[}s2, X1], {[}s2, X2]'' is equivalent to\\
+``{[}s1, X1], {[}s2, Y1] transforms to {[}s1, Y1], {[}s2, X1]\\
+and\\
+{[}s1, X2], {[}s2, Y2] transforms to {[}s1, Y2], {[}s2, X2]''
+
+\section{Fitness functions}
+
+\subsection{bisection bandwidth}
+Page 52 of the thesis ``A complexity theory for VLSI'' by C. Thompson (1980) defines bisection bandwidth for communication graphs as half the compute nodes being separated.
+
+How to measure bisection bandwidth: chose a random set of half the compute nodes. Determine how many cuts need to be made to separate the two halves. There are many possible combinations of switches, and which nodes are in which half also matters.
+
+
+\subsection{hop count}
+
+\href{http://en.wikipedia.org/wiki/Shortest_path_problem}{http://en.wikipedia.org/wiki/Shortest\_path\_problem}
+
+\subsection{single-source shortest path}
+
+\href{http://en.wikipedia.org/wiki/Dijkstra\%27s_algorithm}{http://en.wikipedia.org/wiki/Dijkstra\%27s\_algorithm}
+
+\subsubsection{All pairs shortest Path}
+
+\begin{itemize}
+ \item \href{http://en.wikipedia.org/wiki/Floyd\%E2\%80\%93Warshall_algorithm}{http://en.wikipedia.org/wiki/Floyd\%E2\%80\%93Warshall\_algorithm}
+ \item \href{http://www.cs.rochester.edu/u/nelson/courses/csc_173/graphs/apsp.html}{http://www.cs.rochester.edu/u/nelson/courses/csc\_173/graphs/apsp.html}
+ \item \href{http://stackoverflow.com/questions/5249857/all-pairs-all-paths-on-a-graph}{http://stackoverflow.com/questions/5249857/all-pairs-all-paths-on-a-graph}
+\end{itemize}
+Might be able to get away with finding average hop count and maximum hop count if (1) that is all we care about and (2) there's a faster algorithm for those counts.
+%  \begin{itemize}
+%   \item average hop count
+%   \item maximum hop count
+%  \end{itemize}
+
+
+\subsection{Multi-objective optimization}
+ 
+When a fitness function has multiple components, i.e.,
+\begin{equation}
+ f=a(\textrm{cost})+b(\textrm{latency})+c(\textrm{bisection\ bandwidth})
+\end{equation}
+Then how do you chose values for $a$, $b$, and $c$? The outcome of the evolution is expected to be sensitive to changes in each.
+ 
 \section{future task list}
 
 Once the hop counter is implemented, it would be useful to validate metrics against analytic values for mesh, torus, fat tree topologies.
