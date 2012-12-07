@@ -38,3 +38,21 @@ Obviously a "fully-connected" (each node connects directly to every other node) 
 Second-most optimal would be introducing one switch with n ports for n compute nodes. Then each node can communicate to any other node via one hop. However, when n=1,000,000 the switch is not available for purchase. Also, the single switch is a single point of failure.
 
 Thus the optimal network topology depends on real-world factors such as switches available for purchase (should we buy a lots of 24 port switches, or more 1000 port switches), and how many ports should the compute node support?
+
+
+== other resources ==
+
+http://gavinmhackeling.com/blog/2012/10/simulated-annealing-in-python/
+
+http://codecapsule.com/2010/04/06/simulated-annealing-traveling-salesman/
+
+Parallel Simulated Annealing in Python
+http://code.google.com/p/parsap/
+
+http://margaretmorgan.com/wesley/python/
+http://margaretmorgan.com/wesley/python/anneal.py
+
+
+Python implementation of algorithms from Russell and Norvig's Artificial Intelligence: A Modern Approach. 
+http://code.google.com/p/aima-python/
+http://aima-python.googlecode.com/svn/trunk/search.py
