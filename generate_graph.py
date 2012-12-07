@@ -144,9 +144,6 @@ else:
 # at this point, if too many switches are given, there could exist switches which are connected to 0 or 1 computers. 
 # to do: remove unused switches and switches connected to only one computer
 
-
-#hops_between_nodes(computer_pairs,newconnect)
-
 ngio.writeGraphToFile(number_of_switches,number_of_computers,connections)
 
 # EOF
