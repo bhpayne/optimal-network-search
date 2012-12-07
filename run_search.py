@@ -108,21 +108,27 @@ def plug_routers_into_remaining_routers(switch_arry,connections):
 def generate_random_network(number_of_computers,number_of_ports_per_computer,number_of_routers,number_of_ports_per_router):
   sanity_checks(number_of_routers,number_of_computers,number_of_ports_per_computer,number_of_ports_per_router)
 
+  print_random_network=0 # false
+  
   # create 1D array of computers given the ports\
   const=-1
   computers_arry=create_arrays_for_nodes(number_of_computers,number_of_ports_per_computer,const)
-  print("computers:")
+  if print_random_network:
+    print("computers:")
   #print(computers_arry)
   #print("scrambled:")
   random.shuffle(computers_arry) # decreases liklihood of putting computer into same switch redundantanly.
-  print(computers_arry)
+  if print_random_network:
+    print(computers_arry)
 
   const=1
   switch_arry=create_arrays_for_nodes(number_of_routers,number_of_ports_per_router,const)
-  print("routers:")
+  if print_random_network:
+    print("routers:")
   #print(switch_arry)
   #random.shuffle(switch_arry)
-  print(switch_arry)
+  if print_random_network:
+    print(switch_arry)
 
   connections=[] # declare new list for the edge pairs
 
@@ -130,13 +136,15 @@ def generate_random_network(number_of_computers,number_of_ports_per_computer,num
   plug_computers_in_routers(computers_arry,switch_arry,connections)
 
   # now we need to connect the remaining routers. Avoid redundancy while creating a fully-connected network
-  print("remaining routers:")
-  print(switch_arry)
+  if print_random_network:
+    print("remaining routers:")
+    print(switch_arry)
 
   plug_routers_into_remaining_routers(switch_arry,connections)
 
-  print("connections:")
-  print(connections)
+  if print_random_network:
+    print("connections:")
+    print(connections)
   if (len(switch_arry)==0):
     print("all routers are fully connected")
   else:
@@ -205,20 +213,23 @@ print ("initial average hop count is "+str(average_hop_count))
 #print ("maximum hop count is "+str(max_hop_count))
 
 time_marker=0
-while (time_marker<20):
+while (time_marker<100):
+  #print("reached while loop")
   connections_new=make_alteration_swap_ports(number_of_routers,number_of_computers,connections)
+  #print connections_new
   #draw_graph_pictures(connections_new,"new")
   hop_count_distribution_new=fitness_function_find_all_compute_hop_lengths(number_of_computers,connections_new)
   average_hop_count_new=float(sum(hop_count_distribution_new))/len(hop_count_distribution_new)
-  print ("new average hop count is "+str(average_hop_count_new))
+  #print ("new average hop count is "+str(average_hop_count_new))
 
   if (average_hop_count_new<average_hop_count):
-    print("improvement found")
+    #print("improvement found")
+    print ("new average hop count is "+str(average_hop_count_new))
     connections_best=connections_new
     connections=connections_new
     average_hop_count=average_hop_count_new
-  else:
-    print("new network is not better than previous")
+  #else:
+    #print("new network is not better than previous")
   time_marker=time_marker+1
   
 draw_graph_pictures(connections,"final")  
