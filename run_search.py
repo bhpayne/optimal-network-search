@@ -187,10 +187,10 @@ def convert_connections_to_G(connections):
 #************ MAIN BODY *********************
 
 
-number_of_routers=10
-number_of_ports_per_router=8
+number_of_routers=5
+number_of_ports_per_router=10
 number_of_computers=10
-number_of_ports_per_computer=3
+number_of_ports_per_computer=1
 
 connections = generate_random_network(number_of_computers,number_of_ports_per_computer,number_of_routers,number_of_ports_per_router)
 
@@ -205,11 +205,11 @@ print ("initial average hop count is "+str(average_hop_count))
 #print ("maximum hop count is "+str(max_hop_count))
 
 time_marker=0
-while (time_marker<10):
+while (time_marker<20):
   connections_new=make_alteration_swap_ports(number_of_routers,number_of_computers,connections)
   #draw_graph_pictures(connections_new,"new")
   hop_count_distribution_new=fitness_function_find_all_compute_hop_lengths(number_of_computers,connections_new)
-  average_hop_count_new=sum(hop_count_distribution_new)/len(hop_count_distribution_new)
+  average_hop_count_new=float(sum(hop_count_distribution_new))/len(hop_count_distribution_new)
   print ("new average hop count is "+str(average_hop_count_new))
 
   if (average_hop_count_new<average_hop_count):
