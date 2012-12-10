@@ -1,10 +1,10 @@
 import networkx as nx
 import matplotlib.pyplot as plt
-import networkgraphio as ngio
+import lib_network_optimization as nopt
 
 # http://networkx.lanl.gov/tutorial/tutorial.html
 
-number_of_switches,number_of_computers,connections=ngio.readGraphFromFile()
+number_of_switches,number_of_computers,connections=nopt.readGraphFromFile()
 
 G=nx.Graph()
 
