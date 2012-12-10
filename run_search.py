@@ -174,11 +174,19 @@ def make_alteration_swap_ports(number_of_routers,number_of_computers,connections
 def fitness_function_find_all_compute_hop_lengths(number_of_computers,connections):
   all_pairs=list(itertools.combinations(range(1,number_of_computers+1), 2))
 
-  G=convert_connections_to_G(connections)  
   all_lengths=[]
   for pair_indx in range(len(all_pairs)):
     computerA=all_pairs[pair_indx][0]*-1
     computerB=all_pairs[pair_indx][1]*-1
+    # create a new graph with only compute nodes A, B, and routers.
+    connections_only_AB=[]
+    for edgeindx in range(len(connections)):
+      if (connections[edgeindx][0]==computerA or connections[edgeindx][1]==computerA or connections[edgeindx][0]==computerB or connections[edgeindx][1]==computerB or (connections[edgeindx][0]>0 and connections[edgeindx][1]>0 )):
+	add_this_pair=[]
+	add_this_pair.append(connections[edgeindx][0])
+	add_this_pair.append(connections[edgeindx][1])
+	connections_only_AB.append(add_this_pair)
+    G=convert_connections_to_G(connections_only_AB)  
     # http://networkx.lanl.gov/reference/generated/networkx.algorithms.shortest_paths.generic.shortest_path_length.html#networkx.algorithms.shortest_paths.generic.shortest_path_length
     length_between_compute_nodes=nx.shortest_path_length(G,source=computerA,target=computerB)
     #print length_compute_nodes
@@ -195,10 +203,11 @@ def convert_connections_to_G(connections):
 #************ MAIN BODY *********************
 
 
-number_of_routers=5
+number_of_routers=10
 number_of_ports_per_router=10
 number_of_computers=10
 number_of_ports_per_computer=1
+number_of_iterations=1000
 
 connections = generate_random_network(number_of_computers,number_of_ports_per_computer,number_of_routers,number_of_ports_per_router)
 
@@ -213,7 +222,7 @@ print ("initial average hop count is "+str(average_hop_count))
 #print ("maximum hop count is "+str(max_hop_count))
 
 time_marker=0
-while (time_marker<100):
+while (time_marker<number_of_iterations):
   #print("reached while loop")
   connections_new=make_alteration_swap_ports(number_of_routers,number_of_computers,connections)
   #print connections_new
