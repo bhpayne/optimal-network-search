@@ -1,4 +1,5 @@
 import networkx as nx
+import matplotlib.pyplot as plt
 import os
 import random # "random.shuffle" for reordering computers and ports, routers and ports
 from random import choice  # for "choice" in determining connections
@@ -21,7 +22,7 @@ def fitness_function_find_all_compute_hop_lengths(number_of_computers,connection
 	add_this_pair.append(connections[edgeindx][0])
 	add_this_pair.append(connections[edgeindx][1])
 	connections_only_AB.append(add_this_pair)
-    G=lib_convert_connections_to_G.convert_connections_to_G(connections_only_AB)  
+    G=convert_connections_to_G(connections_only_AB)  
     # http://networkx.lanl.gov/reference/generated/networkx.algorithms.shortest_paths.generic.shortest_path_length.html#networkx.algorithms.shortest_paths.generic.shortest_path_length
     length_between_compute_nodes=nx.shortest_path_length(G,source=computerA,target=computerB)
     #print length_compute_nodes
@@ -52,8 +53,8 @@ def make_alteration_swap_ports(number_of_routers,number_of_computers,connections
   return connections
 
   
-#def swap_multiple_switch_ports(number_of_switches,number_of_computers,connections):
-  #switches=range(1,number_of_switches+1)
+#def swap_multiple_router_ports(number_of_routers,number_of_computers,connections):
+  #routers=range(1,number_of_routers+1)
 
 ## http://stackoverflow.com/questions/853023/how-can-i-find-the-locations-of-an-item-in-a-python-list-of-lists
 #def get_positions(xs, item): # "xs" is the list of lists, "item" is what you are looking for
@@ -67,45 +68,50 @@ def make_alteration_swap_ports(number_of_routers,number_of_computers,connections
 def sanity_checks(number_of_routers,number_of_computers,number_of_ports_per_computer,number_of_ports_per_router):
   # total number of ports on routers must be greater than number of compute nodes
   if ((number_of_routers*number_of_ports_per_router)<number_of_computers):
-    print ("[FN] total number of ports on routers must be greater than number of computers")
+    print ("[Sanity Error] total number of ports on routers must be greater than number of computers")
     print ("number of computers="+str(number_of_computers))
     print ("number of routers ="+str(number_of_routers))
-    print ("number of ports on switch="+str(number_of_ports_per_router))
-    exit(1) # infinite loop would occur during search
+    print ("number of ports on router="+str(number_of_ports_per_router))
+    exit(1) # infinite loop would occur during search due to insufficient connections
   if ((number_of_routers*number_of_ports_per_router)==number_of_computers) and (number_of_routers>1):
-    print ("[FN] total number of ports on routers must be greater than number of computers")
+    print ("[Sanity Error] total number of ports on routers must be greater than number of computers")
     print ("number of computers="+str(number_of_computers))
     print ("number of routers ="+str(number_of_routers))
-    print ("number of ports on switch="+str(number_of_ports_per_router))
-    exit(1) # infinite loop would occur during search
+    print ("number of ports on router="+str(number_of_ports_per_router))
+    exit(1) # infinite loop would occur during search due to disconnected routers
   if (number_of_routers==1) and (number_of_ports_per_router==number_of_computers):
-    print ("[FN] cross-bar network detected (number of ports per switch=number of computers, and number of routers=1")
+    print ("[Sanity Error] cross-bar network detected")
+    print ("(number of ports per router)==(number of computers) and (number of routers==1)")
     print ("no optimization to be performed")
+    exit(1)
+  if ((number_of_routers*number_of_ports_per_router)!=(number_of_computers*number_of_ports_per_computer)):
+    print ("[Sanity Warning] (number of routers)*(number of ports per router) does not equal (number of computers)*(number of ports per computer)")
+    print ("Therefore, you aren't using all available connections")
 
-def create_graphviz_file(number_of_switches,number_of_computers,connections):
+def create_graphviz_file(number_of_routers,number_of_computers,connections):
   fil=open('network.gv', 'w')
 
   fil.write("##Command to produce the output: \"neato -Tpng thisfile.gv > thisfile.png\"\n")
   fil.write("graph G {\n")
   for computer in range(1,number_of_computers+1):
     fil.write("node [shape=box,color=red,style=bold];  c"+str(computer)+";\n")
-  for switch in range(1,number_of_switches+1):  
-    fil.write("node [shape=circle,fixedsize=true,width=0.9,color=blue,style=bold];  s"+str(switch)+";\n")
+  for router in range(1,number_of_routers+1):  
+    fil.write("node [shape=circle,fixedsize=true,width=0.9,color=blue,style=bold];  r"+str(router)+";\n")
 
   for pair_index in range(len(connections)):
     if (connections[pair_index][0]<0): # negative value for computer
       nodeA="     c" 
-    elif (connections[pair_index][0]>0): # positive value for switch
-      nodeA="     s"
+    elif (connections[pair_index][0]>0): # positive value for router
+      nodeA="     r"
     else:
-      print ("[FN] invalid value in connections array with nodeA"+str(connections[pair_index][0]))
+      print ("[Sanity] invalid value in connections array with nodeA"+str(connections[pair_index][0]))
     if (connections[pair_index][1]<0): # negative value for computer
       nodeB="--c" 
-    elif (connections[pair_index][1]>0): # positive value for switch
-      nodeB="--s"
+    elif (connections[pair_index][1]>0): # positive value for router
+      nodeB="--r"
     else:
-      print ("[FN] invalid value in connections array with nodeB"+str(connections[pair_index][1]))
-    #print ("s"+str(switch_index)+"--c"+str(computer))
+      print ("[Sanity] invalid value in connections array with nodeB"+str(connections[pair_index][1]))
+    #print ("s"+str(router_index)+"--c"+str(computer))
     fil.write(nodeA+str(abs(connections[pair_index][0]))+nodeB+str(abs(connections[pair_index][1]))+";\n")
   fil.write("     overlap=false\n")
   fil.write("     label=\"optimized network test\\nlayed out by Graphviz\"\n")
@@ -116,27 +122,27 @@ def create_graphviz_file(number_of_switches,number_of_computers,connections):
   
   
 
-def writeGraphToFile(number_of_switches,number_of_computers,connections):
+def writeGraphToFile(number_of_routers,number_of_computers,connections):
   output=open('graph.pkl','wb')
-  pickle.dump(number_of_switches,output)
+  pickle.dump(number_of_routers,output)
   pickle.dump(number_of_computers,output)
   pickle.dump(connections,output)
   output.close()
 
 def readGraphFromFile():
   pkl_file=open('graph.pkl','rb') # read
-  number_of_switches=pickle.load(pkl_file)
+  number_of_routers=pickle.load(pkl_file)
   number_of_computers=pickle.load(pkl_file)
   connections=pickle.load(pkl_file)
   pkl_file.close()
-  return number_of_switches,number_of_computers,connections
+  return number_of_routers,number_of_computers,connections
 
   
   
   
   
 def draw_graph_pictures(connections,name):
-  G=nopt.convert_connections_to_G(connections)
+  G=convert_connections_to_G(connections)
   nx.draw(G)
   #plt.show()
   plt.savefig("networkx_draw_"+name+".png")
@@ -160,59 +166,59 @@ def create_arrays_for_nodes(number_of_nodes,number_of_ports_per_node,const):
       node_arry.append(node_indx*const)
   return node_arry
 
-def plug_computers_in_routers(computers_arry,switch_arry,connections):
+def plug_computers_in_routers(computers_arry,router_arry,connections):
   for computer_indx in range(len(computers_arry)):
     found_valid_pair=0 # false
     while (not found_valid_pair):
       this_pair=[]
       this_pair.append(computers_arry[computer_indx])
-      this_router_port=choice(switch_arry)
+      this_router_port=choice(router_arry)
       this_pair.append(this_router_port)
-      # if this pair already exists in connections (this computer is already plugged into the switch), try another switch
+      # if this pair already exists in connections (this computer is already plugged into the router), try another router
       keep_searching=1 # true
       for pair_indx in range(len(connections)):
 	if ((connections[pair_indx][0]==this_pair[0]) and (connections[pair_indx][1]==this_pair[1])):
 	  keep_searching=0 # false
 	  break
       if (keep_searching==1): # for loop terminated without finding matching pair
-	found_valid_pair=1 # computer-switch pair did not occur previously, so we found a valid pairing
+	found_valid_pair=1 # computer-router pair did not occur previously, so we found a valid pairing
 	connections.append(this_pair)
-	switch_arry.remove(this_router_port) # remove switch port from pool of available ports
+	router_arry.remove(this_router_port) # remove router port from pool of available ports
 
 # depends on: no other functions
 # returns: connections
-def plug_routers_into_remaining_routers(switch_arry,connections,search_loop_limit):
+def plug_routers_into_remaining_routers(number_of_computers,number_of_ports_per_computer,router_arry,connections,search_loop_limit):
   loop_count=0
-  while len(switch_arry)>1:
+  while len(router_arry)>1:
     if (loop_count>search_loop_limit):
-      print("[FN] probably redundant connections are all that is left")
-      print("[FN] connections:")
+      print("[PRIRR] probably redundant connections are all that is left")
+      print("[PRIRR] connections:")
       print(connections)
-      print("[FN] remaining routers:")
-      print(switch_arry)
+      print("[PRIRR] remaining routers:")
+      print(router_arry)
       break
     loop_count=loop_count+1
-    switchportA=choice(switch_arry)
-    switchportB=choice(switch_arry)
-    if (switchportA != switchportB):
+    routerportA=choice(router_arry)
+    routerportB=choice(router_arry)
+    if (routerportA != routerportB):
       keep_searching=1 # true
-      for pair_indx in range(number_of_computers*number_of_ports_per_computer,len(connections)): # skip the first set which is computer-switch pairs
-	if (((connections[pair_indx][0]==switchportA) and (connections[pair_indx][1]==switchportB)) or ((connections[pair_indx][0]==switchportB) and (connections[pair_indx][1]==switchportA))):
+      for pair_indx in range(number_of_computers*number_of_ports_per_computer,len(connections)): # skip the first set which is computer-router pairs
+	if (((connections[pair_indx][0]==routerportA) and (connections[pair_indx][1]==routerportB)) or ((connections[pair_indx][0]==routerportB) and (connections[pair_indx][1]==routerportA))):
 	  keep_searching=0 # false
 	  break
       if (keep_searching==1): # for loop terminated without finding matching pair
 	this_pair=[]
-	this_pair.append(switchportA)
-	this_pair.append(switchportB)
+	this_pair.append(routerportA)
+	this_pair.append(routerportB)
 	connections.append(this_pair)
-	switch_arry.remove(switchportA) # remove switch port from pool of available ports
-	switch_arry.remove(switchportB) # remove switch port from pool of available ports
+	router_arry.remove(routerportA) # remove router port from pool of available ports
+	router_arry.remove(routerportB) # remove router port from pool of available ports
 	loop_count=0
 
 # depends on "sanity_checks" "create_arrays_for_nodes" "plug_computers_in_routers" "plug_routers_into_remaining_routers"
 # output: "connections"
 def generate_random_network(number_of_computers,number_of_ports_per_computer,number_of_routers,number_of_ports_per_router,search_loop_limit):
-  nopt.sanity_checks(number_of_routers,number_of_computers,number_of_ports_per_computer,number_of_ports_per_router)
+  sanity_checks(number_of_routers,number_of_computers,number_of_ports_per_computer,number_of_ports_per_router)
 
   print_random_network=0 # false
   
@@ -220,42 +226,42 @@ def generate_random_network(number_of_computers,number_of_ports_per_computer,num
   const=-1
   computers_arry=create_arrays_for_nodes(number_of_computers,number_of_ports_per_computer,const)
   if print_random_network:
-    print("computers:")
+    print("[GRN] computers:")
   #print(computers_arry)
   #print("scrambled:")
-  random.shuffle(computers_arry) # decreases liklihood of putting computer into same switch redundantanly.
+  random.shuffle(computers_arry) # decreases liklihood of putting computer into same router redundantanly.
   if print_random_network:
     print(computers_arry)
 
   const=1
-  switch_arry=create_arrays_for_nodes(number_of_routers,number_of_ports_per_router,const)
+  router_arry=create_arrays_for_nodes(number_of_routers,number_of_ports_per_router,const)
   if print_random_network:
-    print("routers:")
-  #print(switch_arry)
-  #random.shuffle(switch_arry)
+    print("[GRN] routers:")
+  #print(router_arry)
+  #random.shuffle(router_arry)
   if print_random_network:
-    print(switch_arry)
+    print(router_arry)
 
   connections=[] # declare new list for the edge pairs
 
   # plug computers into routers, avoiding redundancy
-  plug_computers_in_routers(computers_arry,switch_arry,connections)
+  plug_computers_in_routers(computers_arry,router_arry,connections)
 
   # now we need to connect the remaining routers. Avoid redundancy while creating a fully-connected network
   if print_random_network:
-    print("remaining routers:")
-    print(switch_arry)
+    print("[GRN] remaining routers:")
+    print(router_arry)
 
-  plug_routers_into_remaining_routers(switch_arry,connections,search_loop_limit)
+  plug_routers_into_remaining_routers(number_of_computers,number_of_ports_per_computer,router_arry,connections,search_loop_limit)
 
   if print_random_network:
-    print("connections:")
+    print("[GRN] connections:")
     print(connections)
-  if (len(switch_arry)==0):
-    print("all routers are fully connected")
+  if (len(router_arry)==0):
+    print("[GRN] all routers are fully connected")
   else:
-    print("remaining empty switch ports:")
-    print(switch_arry)
+    print("[GRN] remaining empty router ports:")
+    print(router_arry)
 
   # at this point, if too many routers are given, there could exist routers which are connected to 0 or 1 computers. 
   # to do: remove unused routers and routers connected to only one computer
