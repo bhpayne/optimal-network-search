@@ -628,10 +628,37 @@ Page 52 of the thesis ``A complexity theory for VLSI'' by C. Thompson (1980) def
 
 How to measure bisection bandwidth: chose a random set of half the compute nodes. Determine how many cuts need to be made to separate the two halves. There are many possible combinations of switches, and which nodes are in which half also matters.
 
+Question posted to \href{https://groups.google.com/d/topic/networkx-discuss/hv_SzY-uaTw/discussion}{Networkx Google Group}
+
+Question 1: how to halve the compute nodes?\\
+Simplification 1: consolidate compute nodes which are on the same switch. This only applies to compute nodes with one port.
+
+Idea: use strong repulsion between the compute nodes?
+
+Does recording the paths between compute nodes help?
+
 
 \subsection{hop count}
 
 \href{http://en.wikipedia.org/wiki/Shortest_path_problem}{http://en.wikipedia.org/wiki/Shortest\_path\_problem}
+
+Problem: Given connections
+\begin{equation}
+ [[-1,4],[-2,4],[-2,5],[-3,5],[3,5],[1,3],[1,2],[2,4]]
+\end{equation}
+See Fig.~\ref{fig:wrong_hop_count}.
+\begin{figure}
+\begin{center}
+\includegraphics[scale=.3]{pictures/N3_n2_M5_m2}
+\label{fig:wrong_hop_count}
+ \caption{$m=1,2$, $M=5$, $N=3$. The hop count between -1 and -3 is 6, not 4.}
+\end{center}
+\end{figure}
+Routes between compute nodes can only use positive nodes.
+
+Objective: seek the shortest path between two negative nodes which contain no negative nodes.
+
+Method: for $A<0$ and $B<0$, create a new graph with nodes $A$, $B$, and all positive nodes. Then find the shortest path between $A$ and $B$. Repeat for all compute node pairs.
 
 \subsection{single-source shortest path}
 
@@ -658,6 +685,8 @@ When a fitness function has multiple components, i.e.,
  f=a(\textrm{cost})+b(\textrm{latency})+c(\textrm{bisection\ bandwidth})
 \end{equation}
 Then how do you chose values for $a$, $b$, and $c$? The outcome of the evolution is expected to be sensitive to changes in each.
+ 
+\section{problems}
  
 \section{future task list}
 
