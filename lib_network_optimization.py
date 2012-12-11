@@ -7,6 +7,14 @@ import pickle # serialize data output
 # import cPickle as pickle # "upto 1000 times faster because it is in C"
 import itertools           # for generating pairs of computers 
 
+def fitness_function_bisection_count(number_of_computers,number_of_routers,connections):
+  all_computers=range(1,number_of_computers+1)
+  half_the_computers=[]
+  if ((num_of_computers%2)==0):
+    half_the_computers=random.sample(all_computers,N/2)
+  else:
+    half_the_computers=random.sample(all_computers,(N+1)/2)
+
 def fitness_function_find_all_compute_hop_lengths(number_of_computers,connections):
   all_pairs=list(itertools.combinations(range(1,number_of_computers+1), 2))
 
@@ -66,6 +74,30 @@ def make_alteration_swap_ports(number_of_routers,number_of_computers,connections
         #yield ()
   
 def sanity_checks(number_of_routers,number_of_computers,number_of_ports_per_computer,number_of_ports_per_router):
+  if ((number_of_computers%1)!=0):
+    print ("[Sanity Error] number of computers must be an integer")
+    exit(1)
+  if ((number_of_ports_per_computer%1)!=0):
+    print ("[Sanity Error] number of ports per computer must be an integer")
+    exit(1)
+  if ((number_of_routers%1)!=0):
+    print ("[Sanity Error] number of routers must be an integer")
+    exit(1)
+  if ((number_of_ports_per_router%1)!=0):
+    print ("[Sanity Error] number of ports per router must be an integer")
+    exit(1)
+  if (number_of_computers<=2):
+    print ("[Sanity Error] number of computers must greater than 2")
+    exit(1)
+  if (number_of_ports_per_computer<=0):
+    print ("[Sanity Error] number of ports per computer must be greater than 0")
+    exit(1)
+  if (number_of_routers<=1):
+    print ("[Sanity Error] number of routers must be greater than 1")
+    exit(1)
+  if (number_of_ports_per_router<=2):
+    print ("[Sanity Error] number of ports per router must be greater than 2")
+    exit(1)
   # total number of ports on routers must be greater than number of compute nodes
   if ((number_of_routers*number_of_ports_per_router)<number_of_computers):
     print ("[Sanity Error] total number of ports on routers must be greater than number of computers")
@@ -143,7 +175,10 @@ def readGraphFromFile():
   
 def draw_graph_pictures(connections,name):
   G=convert_connections_to_G(connections)
-  nx.draw(G)
+  compute_color='red'
+  router_color='blue'
+  node_color_list=color_graph_nodes(G,compute_color,router_color)
+  nx.draw(G,node_color=node_color_list)
   #plt.show()
   plt.savefig("networkx_draw_"+name+".png")
   #nx.draw_random(G)
@@ -215,10 +250,56 @@ def plug_routers_into_remaining_routers(number_of_computers,number_of_ports_per_
 	router_arry.remove(routerportB) # remove router port from pool of available ports
 	loop_count=0
 
+# as an example,
+# compute_color='red'
+# router_color='blue'
+def color_graph_nodes(G,compute_color,router_color):
+  all_nodes=G.nodes()
+  node_color_list=[]
+  for indx in range(len(all_nodes)):
+    if (all_nodes[indx]<0):
+      node_color_list.append(compute_color)
+    elif (all_nodes[indx]>0):
+      node_color_list.append(router_color)
+    else:
+      print("invalid node value")
+      exit(1)
+  return node_color_list
+	
+# http://networkx.lanl.gov/reference/generators.html
+def generate_2D_mesh_network(number_of_rows,number_of_columns):
+  if ((number_of_rows<2) or (number_of_columns<2)):
+    print("[G2DMN] insufficient number of rows or columns. Minimum size is 2x2")
+  # http://networkx.lanl.gov/reference/generated/networkx.generators.classic.grid_2d_graph.html
+  Gcoordinates=nx.grid_2d_graph(number_of_rows,number_of_columns, periodic=False)
+  # http://networkx.lanl.gov/reference/generated/networkx.relabel.convert_node_labels_to_integers.html#networkx.relabel.convert_node_labels_to_integers
+  G=nx.convert_node_labels_to_integers(Gcoordinates,first_label=1)
+  # Add compute nodes to each router
+  # G.number_of_nodes()==number_of_rows*number_of_columns
+  for indx in range(1,G.number_of_nodes()+1):
+    G.add_edge(indx,indx*-1)
+  #return G
+  connections=G.edges()
+  return connections
+  
+# as an example,
+# dimensions=[2,3,5]
+# toroidal_true_mesh_false=True
+def generate_ND_toroidal_or_mesh_network(dimensions,toroidal_true_mesh_false):
+  # http://networkx.lanl.gov/reference/generated/networkx.generators.classic.grid_graph.html
+  Gcoordinates=nx.grid_graph(dim=dimensions, periodic=toroidal_true_mesh_false)
+  G=nx.convert_node_labels_to_integers(Gcoordinates,first_label=1)
+  # Add compute nodes to each router
+  for indx in range(1,G.number_of_nodes()+1):
+    G.add_edge(indx,indx*-1)
+  #return G
+  connections=G.edges()
+  return connections
+
+	
 # depends on "sanity_checks" "create_arrays_for_nodes" "plug_computers_in_routers" "plug_routers_into_remaining_routers"
 # output: "connections"
 def generate_random_network(number_of_computers,number_of_ports_per_computer,number_of_routers,number_of_ports_per_router,search_loop_limit):
-  sanity_checks(number_of_routers,number_of_computers,number_of_ports_per_computer,number_of_ports_per_router)
 
   print_random_network=0 # false
   
