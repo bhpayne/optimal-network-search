@@ -66,6 +66,18 @@ Second-most optimal would be introducing one switch with n ports for n compute n
 Thus the optimal network topology depends on real-world factors such as switches available for purchase (should we buy a lots of 24 port switches, or more 1000 port switches), and how many ports should the compute node support?
 
 
+== task list ==
+
+write functions to generate other (standard) topologies - 2D mesh, 3D mesh, 2D torus, 3D torus, 6D torus, Dragonfly, Clos
+
+compare above listed standard topologies to theoretical scaling predictions and also to analytical predictions for metrics like hop count, bisection bandwidth
+
+figure out what actual topologies are at NSF resources -- Ranger, Kraken
+
+Q: does there exist a network topology which performs at least as well as current scientific topologies AND improves all-to-all performance?
+ie 
+http://networkx.lanl.gov/reference/generated/networkx.generators.geometric.navigable_small_world_graph.html
+
 == other resources ==
 
 http://gavinmhackeling.com/blog/2012/10/simulated-annealing-in-python/
