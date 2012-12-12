@@ -7,6 +7,10 @@ import pickle # serialize data output
 # import cPickle as pickle # "upto 1000 times faster because it is in C"
 import itertools           # for generating pairs of computers 
 
+# https://en.wikipedia.org/wiki/Cut_(graph_theory)
+# https://en.wikipedia.org/wiki/Connectivity_(graph_theory)
+# https://en.wikipedia.org/wiki/Minimum_cut
+# https://en.wikipedia.org/wiki/Graph_partitioning_problem
 def fitness_function_bisection_count(number_of_computers,number_of_routers,connections):
   all_computers=range(1,number_of_computers+1)
   half_the_computers=[]
@@ -15,7 +19,22 @@ def fitness_function_bisection_count(number_of_computers,number_of_routers,conne
   else:
     half_the_computers=random.sample(all_computers,(N+1)/2)
   # now that we know which computers we care about, grab the routers pluged into those computers
-    
+  # routers with computers only in the "left" set are assigned to the new "left (routers-only)" set; similarly routers with computers only in the "right" set are assigned to "right (routers-only)"
+  # some routers will have computers plugged into both "left" and "right" sets. Assign these routers to "left" and "right" randomly (via a coin flip biased on number of left and right computers)
+  # does a given router belong in "left" or "right" set?
+
+  # pseudo-code for algorithm:
+  for this_router in all_routers:
+    if (this_router connects only with other routers):
+      place this_router in random.choice(left_side or right_side)
+    elif (this_router connects to computers only on left_side):
+      place this_router in left_side
+    elif (this_router connects to computers only on right_side):
+      place this_router in right_side
+    else: # this_router connects with computers on both left and right sides
+      place this_router in (left_side or right_side, bias based on number of computers on left_side versus right_side)
+  count number of connections between left_side and right_side
+  
 def fitness_function_find_all_compute_hop_lengths(number_of_computers,connections):
   all_pairs=list(itertools.combinations(range(1,number_of_computers+1), 2))
 
