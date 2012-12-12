@@ -14,7 +14,8 @@ def fitness_function_bisection_count(number_of_computers,number_of_routers,conne
     half_the_computers=random.sample(all_computers,N/2)
   else:
     half_the_computers=random.sample(all_computers,(N+1)/2)
-
+  # now that we know which computers we care about, grab the routers pluged into those computers
+    
 def fitness_function_find_all_compute_hop_lengths(number_of_computers,connections):
   all_pairs=list(itertools.combinations(range(1,number_of_computers+1), 2))
 
