@@ -15,8 +15,11 @@ def color_graph_nodes(G,compute_color,router_color):
       exit(1)
   return node_color_list
 
-connections_bbw = [[-1,1],[-2,2],[-3,3],[-4,4],[1,4],[1,3],[2,4],[2,3]] # good
-# connections_bbw = [[-1,1],[-2,1],[-3,1],[-4,1],[1,2],[2,3],[2,4],[2,5],[2,6],[3,-8],[4,-7],[5,-6],[6,-5]] # bad
+# routers only versus routers and computers
+
+# computers and routers
+connections = [[-1,1],[-2,2],[-3,3],[-4,4],[1,4],[1,3],[2,4],[2,3]] # good minimum bisection 
+# connections = [[-1,1],[-2,1],[-3,1],[-4,1],[1,2],[2,3],[2,4],[2,5],[2,6],[3,-8],[4,-7],[5,-6],[6,-5]] # bad minimum bisection 
 G=nx.Graph()
 G.add_edges_from(connections_bbw)
 compute_color='red'
