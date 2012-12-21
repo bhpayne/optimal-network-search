@@ -13,27 +13,52 @@ import itertools           # for generating pairs of computers
 # https://en.wikipedia.org/wiki/Graph_partitioning_problem
 def fitness_function_bisection_count(number_of_computers,number_of_routers,connections):
   all_computers=range(1,number_of_computers+1)
-  half_the_computers=[]
-  if ((num_of_computers%2)==0):
-    half_the_computers=random.sample(all_computers,N/2)
+  all_routers=range(1,number_of_routers+1)
+  random.shuffle(all_computers) # for the purpose of selecting a random set of half the computers
+  if ((number_of_computers%2)==0):
+    left_partition_computers = all_computers[0:number_of_computers/2]
+    right_partition_computers = all_computers[number_of_computers/2+1:number_of_computers]
   else:
-    half_the_computers=random.sample(all_computers,(N+1)/2)
-  # now that we know which computers we care about, grab the routers pluged into those computers
-  # routers with computers only in the "left" set are assigned to the new "left (routers-only)" set; similarly routers with computers only in the "right" set are assigned to "right (routers-only)"
-  # some routers will have computers plugged into both "left" and "right" sets. Assign these routers to "left" and "right" randomly (via a coin flip biased on number of left and right computers)
-  # does a given router belong in "left" or "right" set?
+    left_partition_computers = all_computers[0:(number_of_computers+1)/2]
+    right_partition_computers = all_computers[(number_of_computers+1)/2+1:number_of_computers]
 
-  # pseudo-code for algorithm:
-  for this_router in all_routers:
-    if (this_router connects only with other routers):
-      place this_router in random.choice(left_side or right_side)
-    elif (this_router connects to computers only on left_side):
-      place this_router in left_side
-    elif (this_router connects to computers only on right_side):
-      place this_router in right_side
-    else: # this_router connects with computers on both left and right sides
-      place this_router in (left_side or right_side, bias based on number of computers on left_side versus right_side)
-  count number of connections between left_side and right_side
+  # 20121220: I don't think the algorithm below has any strong advantages yet, so I'm going to due a brute-force search
+  #**********************************
+  ## now that we know which computers we care about, grab the routers pluged into those computers
+  ## routers with computers only in the "left" set are assigned to the new "left (routers-only)" set; similarly routers with computers only in the "right" set are assigned to "right (routers-only)"
+  ## some routers will have computers plugged into both "left" and "right" sets. Assign these routers to "left" and "right" randomly (via a coin flip biased on number of left and right computers)
+  ## does a given router belong in "left" or "right" set?
+  ## pseudo-code for algorithm:
+  #for this_router in all_routers:
+    #if (this_router connects only with other routers):
+      #place this_router in random.choice(left_side or right_side)
+    #elif (this_router connects to computers only on left_side):
+      #place this_router in left_side
+    #elif (this_router connects to computers only on right_side):
+      #place this_router in right_side
+    #else: # this_router connects with computers on both left and right sides
+      #place this_router in (left_side or right_side, bias based on number of computers on left_side versus right_side)
+  #count number of connections between left_side and right_side
+  #**********************************
+  # Brute-force bisection search
+  # 1) grab a random number of switches
+  #left_partition_routers=random.sample(all_routers,random.randint(0,number_of_routers) # this works, but I'm not sure how to get the right half elegantly.
+  random.shuffle(all_routers)
+  # now split this list into two parts
+  random_number_of_routers=random.randint(0,number_of_routers)
+  left_partition_routers=all_routers[0:random_number_of_routers]
+  right_partition_routers=all_routers[random_number_of_routers:number_of_routers]
+  # 2) for each edge in connections, are the two values in two partitions?
+  left_partition=[]
+  left_partition.append(left_partition_routers)
+  left_partition.append(left_partition_computers)
+  right_partition=[]
+  right_partition.append(right_partition_routers)
+  right_partition.append(right_partition_computers)
+  bisection_count=0
+  for edge in connections:
+    if (((edge[0] in left_partition) and (edge[1] in right_partition)) or ((edge[0] in right_partition) and (edge[1] in left_partition))):
+      bisection_count=bisection_count+1
   
 def fitness_function_find_all_compute_hop_lengths(number_of_computers,connections):
   all_pairs=list(itertools.combinations(range(1,number_of_computers+1), 2))
