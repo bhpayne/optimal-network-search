@@ -630,13 +630,52 @@ How to measure bisection bandwidth: chose a random set of half the compute nodes
 
 Question posted to \href{https://groups.google.com/d/topic/networkx-discuss/hv_SzY-uaTw/discussion}{Networkx Google Group}
 
-Question 1: how to halve the compute nodes?\\
-Simplification 1: consolidate compute nodes which are on the same switch. This only applies to compute nodes with one port.
+Question: how to halve the compute nodes?\\
+
+Simplification: consolidate compute nodes which are on the same switch. This only applies to compute nodes with one port.
 
 Idea: use strong repulsion between the compute nodes?
 
 Does recording the paths between compute nodes help?
 
+\subsubsection{number of bisections}
+How many times does the bisection need to be measured?
+
+To answer this, we need to know how many unique permutations there are of the network. Suppose there are $N$ computers and $M$ routers. Then the number of halves of computers is $N(N-1)(N-2)\cdots(N/2)$:
+\begin{equation}
+ \prod_{x=0}^{N/2}(N-x)
+\end{equation}
+Similarly, the number of (unequal) router partitions is $M!$. Thus the number of unique network partitions, $U$, is
+\begin{equation}
+ U = M! \prod_{x=0}^{N/2}(N-x)
+\end{equation}
+If we want to find the minimum bisection, then an (orderly) exhaustive search is necessary. Instead, do a random search (random swaps of edges) and have some confidence of having found the minimum.
+
+Given $U$ items, how many picks $p$ are needed to get a specific item with a certain confidence level $q$. Constraints: (1) the search $p$ doesn't stop when the item is found, (2) picks are made with replacement -- there are always $U$ items.
+
+As an example, suppose $U=2$. Then $p=1$ gives $q=50\%$. The confidence increases when $p$ increases, but it never reaches 100\%. For $p=2$, the outcomes in which we find the specific item are
+ (($p_1$ and $p_2$) or ($p_1$ and $!p_2$) or ($!p_1$ and $p_2$)). Thus $p=2$ yeilds $q=.5*.5+.5*.5+.5*.5=$75\%. An easier way of expressing this is to ask the opposite: which outcomes are not going to yield the specific item? When we don't pick it in all tries: ($!p_1$ and $!p_2$). Then we care about 1-(.5*.5)=75\%.
+
+One more pick, $p=3$. The cases in which we find a specific item are the same as not finding it after 3 tries: $1-(!p_1$ and $!p_2$ and $!p_3)=1-(.5*.5*.5)=$87.5\%. 
+
+Since $p_i=1/U$, then $!p_i=1-(1/U)$.
+ 
+Once we can find the confidence based on $p$ picks, we can invert the relation and calculate the number of picks needed to have a certain confidence level. Given $p$ picks of $U$ items, the confidence $C$ that the specific item was picked at least once is
+\begin{equation}
+ C = 1 - \left(1-\frac{1}{U}\right)^p
+\end{equation}
+Invert this to find $p(C,U)$
+\begin{equation}
+  \left(1-\frac{1}{U}\right)^p = 1-C
+\end{equation}
+\begin{equation}
+ p = \frac{\log(1-c)}{\log(1-(1/U))}
+\end{equation}
+As an example, suppose we want 90\% confidence ($C=0.9$) and there are 100 items to pick from ($U=100$). Then
+\begin{equation}
+ p = \lceil\frac{\log(1-.9)}{\log(1-(1/100))}\rceil = 230
+\end{equation}
+We would need 230 picks.
 
 \subsection{hop count}
 
