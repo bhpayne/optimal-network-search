@@ -111,17 +111,62 @@ def convert_connections_to_G(connections):
   return G
 
 # output: connections
-# note: this can be replaced with
+# note: this cannot be replaced with
 # http://networkx.lanl.gov/reference/generated/networkx.algorithms.swap.double_edge_swap.html#networkx.algorithms.swap.double_edge_swap
-def make_alteration_swap_ports(number_of_routers,number_of_computers,connections):
+# since ((router-computer) and (router-computer)) would swap to ((router-router) and (computer-computer)
+def make_alteration_swap_ports(number_of_routers,number_of_computers,connections,random_network_search_limit):
+  # we assume no connection exist of the form computer-computer
+  # we need to make alterations which do not introduce computer-computer edges.
   edgeA=connections.pop(random.randrange(len(connections))) # get a random edge from the connections array
-  edgeB=connections.pop(random.randrange(len(connections)))
+  search_indx=0
+  if ((edgeA[0]<0) and (edgeA[1]<0)):
+    print("ERROR: computer-computer connection found!")
+    print edgeA
+    #exit()
+  elif ((edgeA[0]>0) and (edgeA[1]>0)): # if edgeA is router-router, then it doesn't matter whether edgeB is r-r, c-r, or r-c
+    edgeB=connections.pop(random.randrange(len(connections)))
+  else: 
+    if ((edgeA[0]>0) and (edgeA[1]<0)):  # if edgeA is r-c, then edgeB can be either r-r or c-r. edgeB cannot be r-c
+      found_valid_edge_pair=False
+      while ((not found_valid_edge_pair) and (search_indx<random_network_search_limit)):
+	edgeB=connections.pop(random.randrange(len(connections)))
+	if ((edgeB[0]>0) and (edgeB[1]>0)) or ((edgeB[0]<0) and (edgeB[1]>0)):
+	  found_valid_edge_pair=True
+	  search_indx=0
+	  break
+	else:
+	  connections.append(edgeB)
+	  search_indx=search_indx+1
+    if ((edgeA[0]<0) and (edgeA[1]>0)):  # if edgeA is c-r, then edgeB can be either r-r or r-c. edgeB cannot be c-r
+      found_valid_edge_pair=False
+      while ((not found_valid_edge_pair) and (search_indx<random_network_search_limit)):
+	edgeB=connections.pop(random.randrange(len(connections)))
+	if ((edgeB[0]>0) and (edgeB[1]>0)) or ((edgeB[0]>0) and (edgeB[1]<0)):
+	  found_valid_edge_pair=True
+	  search_indx=0
+	  break
+	else:
+	  connections.append(edgeB)
+	  search_indx=search_indx+1
+  if (search_indx==random_network_search_limit):
+    print("ERROR: valid edge pair not found during swap search")
+    return connections    
+  #print("edgeA before:")
+  #print edgeA
+  #print("edgeB before:")
+  #print edgeB
+  
   edgeA_swapped=[]
   edgeB_swapped=[]
-  edgeA_swapped.append(edgeA[0])  #   A =[X, Y] and B =[W, Z]
-  edgeA_swapped.append(edgeB[1])  #   transform to
-  edgeB_swapped.append(edgeB[0])  #   A'=[X, Z] and B'=[W, Y]
-  edgeB_swapped.append(edgeA[1]) 
+  edgeA_swapped.append(edgeA[0])  #   A =[X, Y] and B =[W, Z]            X--Y     X  Y
+  edgeA_swapped.append(edgeB[0])  #   transform to                            ==> |  |
+  edgeB_swapped.append(edgeA[1])  #   A'=[X, W] and B'=[Y, Z]            W--Z     W  Z
+  edgeB_swapped.append(edgeB[1]) 
+  #print("edgeA after:")
+  #print edgeA_swapped
+  #print("edgeB after:")
+  #print edgeB_swapped
+  
   connections.append(edgeA_swapped)
   connections.append(edgeB_swapped)
   return connections
