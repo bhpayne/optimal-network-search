@@ -5,6 +5,20 @@
 
 # purpose: 
 
+# usage:
+# python run_search.py
+
+# with profiling:
+# http://stackoverflow.com/questions/582336/how-can-you-profile-a-python-script
+
+# python -m cProfile -s time -o profile_result.log run_search.py
+
+# sudo easy_install pycallgraph
+# pycallgraph run_search.py
+# eog pycallgraph.png
+
+# pycallgraph -f svg -o pycallgraph.svg run_search.py
+
 # output: 
 
 import networkx as nx
@@ -19,11 +33,12 @@ def done_searching(average_hop_count_initial,average_hop_count_best,connections_
   plt.xlabel('iteration')
   plt.ylabel('average hop count')
   plt.plot(range(len(tracker)),tracker)  
-  plt.show()
-
+  #plt.show()
+  plt.savefig("networkx_hop_count_versus_iterations.png")
+  plt.close()
 #************ MAIN BODY *********************
 
-number_of_iterations=1000 # how many evolutions to make. Must be a positive integer
+number_of_iterations=10 # how many evolutions to make. Must be a positive integer
 max_number_of_swaps=20 # how big is the step size which defines "local" neighborhood? Must be a positive integer 
 random_network_search_limit=1000 # used for random graph generation. Must be a positive integer
 valid_path_search_limit=1000 # Must be a positive integer
@@ -117,8 +132,9 @@ while (time_marker<number_of_iterations):
     #print ("new average hop count is "+str(average_hop_count_new)+" and best remains "+str(average_hop_count_best))
     tracker.append(average_hop_count_new)
     # deciding whether connections=connections_new is a function of temperature, aka time
-    # for now we will always go to the new network:
-    connections=connections_new
+    if (random.random()>(time_marker/number_of_iterations)): # biased coin flip: http://stackoverflow.com/questions/477237/how-do-i-simulate-flip-of-biased-coin-in-python
+      connections=connections_new
+    # else: keep existing connections
   time_marker=time_marker+1
 
 done_searching(average_hop_count_initial,average_hop_count_best,connections_best,tracker)
