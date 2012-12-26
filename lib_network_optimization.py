@@ -63,7 +63,7 @@ def fitness_function_bisection_count(number_of_computers,number_of_routers,conne
   right_partition=[]
   right_partition.append(right_partition_routers)
   right_partition.append(right_partition_computers)
-  left_partition = list(itertools.chain(*left_partition))
+  left_partition = list(itertools.chain(*left_partition)) # flattens list of lists into a list
   right_partition= list(itertools.chain(*right_partition))
   #print ("left partition:")
   #print left_partition
@@ -110,6 +110,77 @@ def convert_connections_to_G(connections):
   G.add_edges_from(connections)
   return G
 
+def make_alteration_remove_router_router_edge(number_of_routers,number_of_computers,connections,number_of_ports_per_router,random_network_search_limit):
+  flattened_connections = list(itertools.chain(connections))
+
+  valid_removal=False
+  slimit=0
+  while ((not valid_removal) and (slimit<random_network_search_limit)):
+    found_router_with_enough_ports_used=False
+    search_indx=0
+    while ((not found_router_with_enough_ports_used) and (search_indx<number_of_routers)):
+      routerA=random.randint(1,number_of_routers) # pick a random router A
+      if (flattened_connections.count(routerA)>2):    # does router A have more than 2 connections?
+	found_router_with_enough_ports_used=True
+	break
+      else:
+	search_indx=search_indx+1
+    if (search_indx==number_of_routers):
+      print('didn\'t find a router to disconnect after '+str(number_of_routers)+' tries')
+      return connections
+
+    # at this point we have found routerA and it has more than 2 connections
+    found_router_connected_to_A=False
+    search_indx=0
+    # MORE WORK TO BE DONE HERE, BUT I'M TIRED
+    #while (not found_router_connected_to_A) and (search_indx<number_of_routers)
+      # pick a random router B connected to A
+      # does router B have more than 2 connections?
+
+    # remove [A,B] from connections
+    # check that this doesn't break the network: test paths between all computers
+    try:
+      hop_count_distribution=nopt.fitness_function_find_all_compute_hop_lengths(number_of_computers,connections)
+      valid_removal=True
+      break
+    except nx.NetworkXNoPath:
+      print("this removal segments the network")
+      valid_removal=False
+      slimit=slimit+1
+  return connections
+  
+def make_alteration_add_router_router_edge(number_of_routers,connections,number_of_ports_per_router,random_network_search_limit):
+  flattened_connections = list(itertools.chain(connections))
+  found_router_with_empty_ports=False
+  search_indx=0
+  while ((not found_router_with_empty_ports) and (search_indx<number_of_routers)):
+    routerA=random.randint(1,number_of_routers) # pick a random router A
+    if (flattened_connections.count(routerA)<number_of_ports_per_router):    # does router A have open ports?
+      found_router_with_empty_ports=True
+      break
+    else:
+      search_indx=search_indx+1
+  if (search_indx==number_of_routers):
+    print('didn\'t find a router to connect after '+str(number_of_routers)+' tries')
+    return connections
+
+  # at this point we have found routerA and it has open ports
+  found_second_router_with_empty_ports=False
+  search_indx=0
+  while ((not found_second_router_with_empty_ports) and (search_indx<number_of_routers)):
+    routerB=random.randint(1,number_of_routers) # pick a random router B
+    if ((flattened_connections.count(routerB)<number_of_ports_per_router) and (routerA != routerB)):    # does router B have open ports and is distinct from A?
+      found_second_router_with_empty_ports=True
+      break
+    else:
+      search_indx=search_indx+1
+  if (search_indx==number_of_routers):
+    print('didn\'t find a second router to connect after '+str(number_of_routers)+' tries')
+    return connections
+  #print('routerA: '+str(routerA)+' and routerB: '+str(routerB))
+  connections.append([routerA,routerB])    # add connection between A,B
+  return connections
+  
 # output: connections
 # note: this cannot be replaced with
 # http://networkx.lanl.gov/reference/generated/networkx.algorithms.swap.double_edge_swap.html#networkx.algorithms.swap.double_edge_swap
