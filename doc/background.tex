@@ -49,7 +49,7 @@
 There are two methods to model a network:
 \begin{itemize}
  \item create a database of port connections
- \item create autonomous switches which direct packets to other components
+ \item create autonomous routers which direct packets to other components
 \end{itemize}
 For this model I will be using a database of connections.
 
@@ -66,7 +66,7 @@ All possible compute bottlenecks:
 
 We want an efficient and reasonable all-to-all network. 
 
-An optimal all-to-all design would have each compute node with $N-1$ ports and no switches (0 hops).
+An optimal all-to-all design would have each compute node with $N-1$ ports and no routers (0 hops).
 \begin{figure}[h!]
 \begin{center}
 (a)\ \includegraphics[scale=0.2]{pictures/N2_n1_M0_mNA}\ \ \ 
@@ -76,28 +76,28 @@ An optimal all-to-all design would have each compute node with $N-1$ ports and n
 \caption{increasing the number of nodes. Doesn't scale well due to limited number of ports on each compute node ($n<N$).}
 \end{center}
 \end{figure}
-For $N>1000$ this simplisitic approach is not feasiable. Thus we introduce switches.
+For $N>1000$ this simplisitic approach is not feasiable. Thus we introduce routers.
 \begin{figure}[h!]
 \begin{center}
 (a)\includegraphics[scale=0.2]{pictures/N4_n1_M1_m4}\ \ \ 
 (b)\includegraphics[scale=0.2]{pictures/N6_n1_M2_m4}\\*
-\caption{adding switches. Doesn't scale well due to limited number of ports per switch ($m<N$). Also, conjestion (a,b) and bisection bandwidth (a) are poor.}
+\caption{adding routers. Doesn't scale well due to limited number of ports per router ($m<N$). Also, conjestion (a,b) and bisection bandwidth (a) are poor.}
 \end{center}
 \end{figure}
 
-To reduce conjestion and increase bisection bandwidth, add more switches. Also increase the number of ports per compute node. Then the optimization problem becomse non-trivial.
+To reduce conjestion and increase bisection bandwidth, add more routers. Also increase the number of ports per compute node. Then the optimization problem becomse non-trivial.
 
 \subsection{objectives}
 
 If I can show a given topology is better than some other, that is useful.
 
-If I can show how one switch versus another (differentiated by number of ports) affects performance, that is useful.
+If I can show how one router versus another (differentiated by number of ports) affects performance, that is useful.
 
 Note: although this model is useful for all-to-all communication measurement, there are not inherent constraints as far as applying this same model to other interests. You can use whatever fitness function you can define.
 
 \subsection{Does Topology matter? A toy model example}
 
-Suppose now we have $N=5$ compute nodes with 1 port each. Then the optimal network design (fewest hops) is to have a 5 port switch:
+Suppose now we have $N=5$ compute nodes with 1 port each. Then the optimal network design (fewest hops) is to have a 5 port router:
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[scale=0.2]{pictures/N5_n1_M1_m5.png}\\*
@@ -105,37 +105,37 @@ Suppose now we have $N=5$ compute nodes with 1 port each. Then the optimal netwo
 \end{center}
 \end{figure}
 
-The other extreme would be to use five of these same switches with only one compute node per switch:
+The other extreme would be to use five of these same routers with only one compute node per router:
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[scale=0.2]{pictures/N5_n1_M5_m5.png}\\*
 \caption{Here number of hops is 2 for each compute node.}
 \end{center}
 \end{figure}
-Clearly we are spending too much money on switches for the same number of compute nodes. However, this increased hop count (2) also lowers conjestion.
+Clearly we are spending too much money on routers for the same number of compute nodes. However, this increased hop count (2) also lowers conjestion.
 
-As a compromise, we can use two switches and increase the number of compute nodes:
+As a compromise, we can use two routers and increase the number of compute nodes:
 
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[scale=0.2]{pictures/N8_n1_M2_m5.png}\\*
-\caption{8 nodes and 2 switches: 12 pairs with 1 hop, 16 pairs with 2 hops.}
+\caption{8 nodes and 2 routers: 12 pairs with 1 hop, 16 pairs with 2 hops.}
 \end{center}
 \end{figure}
 
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[scale=0.2]{pictures/N9_n1_M4_m5.png}\\*
-\caption{1 or 2 hops, 9 nodes and 3 switches.}
+\caption{1 or 2 hops, 9 nodes and 3 routers.}
 \end{center}
 \end{figure}
 Notice a few constraints were followed:
 \begin{itemize}
- \item each switch has same number of ports
+ \item each router has same number of ports
  \item each compute node has one port
- \item each switch is fully occupied
+ \item each router is fully occupied
  \item each node can reach every other node
- \item each switch has at least one computer connected to it
+ \item each router has at least one computer connected to it
 \end{itemize}
 
 The number of permutations increases when we have more than 9 compute nodes and only 5 ports. Even worse, consider when there are multiple ports per computer (but much less than the number of computers).
@@ -144,8 +144,8 @@ The parameter space includes
 \begin{itemize}
  \item number of computers
  \item number of ports per computer
- \item number of switches
- \item number of ports per switch
+ \item number of routers
+ \item number of ports per router
 \end{itemize}
 Metrics:
 \begin{itemize}
@@ -256,60 +256,60 @@ If the topology turns out to be scale free, then we wouldn't need to model 1E6 e
 
 \section{more than one port per endpoint}
 
-If each endpoint has only one network connection, then we can model a switch-only network. A switch with 4 ports not connected to other switches would have 4 endpoints.
+If each computer endpoint has only one network connection, and all routers have the same configuration of router and computer connections, then we can model a router-only network. 
 
-This might simplify the analysis, but here we model compute nodes with more than one port. Then it is necessary to include both ``switch'' and ``compute'' type nodes.
+This might simplify the analysis, but here we model more complicated networks. Routers which don't necessarily have the same configuration, compute nodes with more than one port. Then it is necessary to include both ``router'' and ``compute'' type nodes.
 
 \section{random network creation}
 
-For a given \{(number of computers), (number of ports per computer), (number of ports per switch)\}, should random computers be plugged into random port switches, or should random switches be connected first?
+For a given \{(number of computers), (number of ports per computer), (number of ports per router)\}, should random computers be plugged into random port routers, or should random routers be connected first?
 
 \ \\
 ``connections'' database methods:
 \begin{itemize}
- \item each switch is an sub-array of the connections array. The elements of each sub-array denote which computer the switch is plugged into. 
- \item connections pairs: computer--switch and switch-switch. The connections array has sub-arrays of size 2 for each edge of the graph (nodes are either computers or switches).
+ \item each router is an sub-array of the connections array. The elements of each sub-array denote which computer the router is plugged into. 
+ \item connections pairs: computer--router and router-router. The connections array has sub-arrays of size 2 for each edge of the graph (nodes are either computers or routers).
  \begin{itemize}
-  \item unordered pairs of positive (switch) and negative (computer) integer indices
+  \item unordered pairs of positive (router) and negative (computer) integer indices
  \end{itemize}
 
 \end{itemize}
 Features needed:
  \begin{itemize}
-  \item supports switches having arbitrary port count (not all switches must have same number of ports
+  \item supports routers having arbitrary port count (not all routers must have same number of ports
  \end{itemize}
 
 
 \ \\
-Whether local symmetry (same number of computers plugged into each switch) is a hinderance, benefit, or irrelevant is not clear to me.
+Whether local symmetry (same number of computers plugged into each router) is a hinderance, benefit, or irrelevant is not clear to me.
 
 Random connections lead to unexpected paths. This could be good, bad, or inconsequential.
 
 \section{route enumeration}
 
 \begin{enumerate}
- \item For each computer, see what other computers are available on the same switch (1 hop)
- \item For each computer, see what other computers are two switches away (2 hops)
+ \item For each computer, see what other computers are available on the same router (1 hop)
+ \item For each computer, see what other computers are two routers away (2 hops)
  \item ...
 \end{enumerate}
-When a switch has had all of its computers touched for a given iteration, then we should mark that switch as ``touched'' (doesn't need to be queried again for current iteration). That is, mark a switch to indicate ``all locally-attached computers have number of hops known.'' This should reduce search time.
+When a router has had all of its computers touched for a given iteration, then we should mark that router as ``touched'' (doesn't need to be queried again for current iteration). That is, mark a router to indicate ``all locally-attached computers have number of hops known.'' This should reduce search time.
 
-\section{Maximum and Minimum number switches needed}
-How many switches ($M$) are needed when each switch has $m$ ports? (Assume $m<(N-1)$.)
+\section{Maximum and Minimum number routers needed}
+How many routers ($M$) are needed when each router has $m$ ports? (Assume $m<(N-1)$.)
 
 Variables: 
 \begin{itemize}
  \item $n$ = number ports per compute node
  \item $N$ = number of compute nodes
-\item $m$ = number of ports per switch
- \item $M$ = number of switches
+\item $m$ = number of ports per router
+ \item $M$ = number of routers
 \end{itemize}
-Observe that we have already made the simplifying assumption of identical compute nodes and identical switches.
+Observe that we have already made the simplifying assumption of identical compute nodes and identical routers.
 
 \subsection{one port per compute node}
-For $N$ compute nodes, how many switches $M$ are needed when each switch has $m$ ports? We assume there are more compute nodes than ports on one switch ($m<(N-1)$). We must obey the constraints (every compute node must be able to reach every other compute node -- ``fully connected network''), (all switch ports are used), (all compute node ports are used).
+For $N$ compute nodes, how many routers $M$ are needed when each router has $m$ ports? We assume there are more compute nodes than ports on one router ($m<(N-1)$). We must obey the constraints (every compute node must be able to reach every other compute node -- ``fully connected network''), (all router ports are used), (all compute node ports are used).
 
-\textbf{Solution 1}: to get an all-to-all network, each node should connect to a tree with $(N-1)$ endpoints (bisection bandwidth is thus maximized). To acheive this, start with one compute node and a switch with $m$ ports (for this example let $m=5$). At this tree level ($k=1$) we have $m=5$, $M'=1$, and $N-1=4$. ($M'$ refers to the number of switches for this one compute node).
+\textbf{Solution 1}: to get an all-to-all network, each node should connect to a tree with $(N-1)$ endpoints (bisection bandwidth is thus maximized). To acheive this, start with one compute node and a router with $m$ ports (for this example let $m=5$). At this tree level ($k=1$) we have $m=5$, $M'=1$, and $N-1=4$. ($M'$ refers to the number of routers for this one compute node).
 
 \begin{figure}[h!]
 \begin{center}
@@ -341,17 +341,17 @@ Generalizing, the number of compute nodes the one we are dealing with can connec
  N-1=(m-1)^k
  \label{eq:Nminus1k}
 \end{equation}
-and the number switches this one compute node needs to create $N-1$ endpoints is
+and the number routers this one compute node needs to create $N-1$ endpoints is
 \begin{equation}
  M'=\sum_{a=1}^{k} (m-1)^{(a-1)}
 \end{equation}
-Since there are a total of $N$ compute nodes, the total number of switches $M$ needed is
+Since there are a total of $N$ compute nodes, the total number of routers $M$ needed is
 \begin{equation}
 \boxed{
  M_{max}=N\sum_{a=1}^{k} (m-1)^{(a-1)}
  }
 \end{equation}
-This is the maximum number of switches needed.
+This is the maximum number of routers needed.
 
 We can solve for $k$ from Eq.~\ref{eq:Nminus1k}
 \begin{equation}
@@ -367,9 +367,9 @@ For Matlab/Octave,
 \begin{verbatim}
  a=1:ceil(log(N-1)/log(m-1)); M_max=N*sum((m-1).^(a-1))
 \end{verbatim}
-Note: use of ``ceil'' gives worse case scenario in which there are empty switch ports. This equation is accurate when Eq.~\ref{eq:k_n1} is an integer (then ``ceil'' is not used).
+Note: use of ``ceil'' gives worse case scenario in which there are empty router ports. This equation is accurate when Eq.~\ref{eq:k_n1} is an integer (then ``ceil'' is not used).
 
-\textbf{Solution 2}: the minimum number of switches needed can be found by daisy-chaining switches together. We can enumerate this by seeing how many compute nodes can be attached to 1 switch, then 2 switches, and so on. 
+\textbf{Solution 2}: the minimum number of routers needed can be found by daisy-chaining routers together. We can enumerate this by seeing how many compute nodes can be attached to 1 router, then 2 routers, and so on. 
 
 \begin{figure}[h!]
 \begin{center}
@@ -425,12 +425,12 @@ M_min=(N-(2*(m-1)))/(m-2)+2
 
 
 \ \\
-As an example, when $N=1000$ and $m=24$, the maximum number of switches is 553,000 (solution 1) and the minimum is 46 (solution 2).
+As an example, when $N=1000$ and $m=24$, the maximum number of routers is 553,000 (solution 1) and the minimum is 46 (solution 2).
 
 \subsection{more than one port per compute node}
-What is the maximum switch count when there are two ports per compute node ($n=2$)? 
+What is the maximum router count when there are two ports per compute node ($n=2$)? 
 
-\textbf{Solution 1} (maximum number of switches): Start with one compute node and a switch with $m$ ports (for this example let $m=5$). At this tree level ($k=1$) we have $m=5$, $M'=2$, and $N-1=2*4=8$. ($M'$ refers to the number of switches for this one compute node).
+\textbf{Solution 1} (maximum number of routers): Start with one compute node and a router with $m$ ports (for this example let $m=5$). At this tree level ($k=1$) we have $m=5$, $M'=2$, and $N-1=2*4=8$. ($M'$ refers to the number of routers for this one compute node).
 
 
 \begin{figure}[h!]
@@ -471,11 +471,11 @@ Generalizing, the number of nodes this one can connect to is
  N=n(m-1)^k
  \label{eq:Nminus1kngt1}
 \end{equation}
-and the number of switches for this one compute node is
+and the number of routers for this one compute node is
 \begin{equation}
  M'=n\sum_{a=1}^{k} (m-1)^{(a-1)}
 \end{equation}
-As before, the total number of switches needed is $M=N M'$,
+As before, the total number of routers needed is $M=N M'$,
 \begin{equation}
 \boxed{
  M_{max}=N n\sum_{a=1}^{k} (m-1)^{(a-1)}
@@ -495,13 +495,13 @@ For Matlab/Octave,
 \begin{verbatim}
 a=1:ceil(log((N-1)/n)/log(m-1)); M_max=N*n*sum((m-1).^(a-1))
 \end{verbatim}
-Note: use of ``ceil'' gives worse case scenario in which there are empty switch ports. This equation is accurate when Eq.~\ref{eq:k_many_n} is an integer (then ``ceil'' is not used).
+Note: use of ``ceil'' gives worse case scenario in which there are empty router ports. This equation is accurate when Eq.~\ref{eq:k_many_n} is an integer (then ``ceil'' is not used).
 
-The maximum number of switches as given by Eq.~\ref{eq:maximum_ngt1} is expected to be less than the value from Eq.~\ref{eq:maximum_neq1} since there are more ports supplied at the compute node.
+The maximum number of routers as given by Eq.~\ref{eq:maximum_ngt1} is expected to be less than the value from Eq.~\ref{eq:maximum_neq1} since there are more ports supplied at the compute node.
 
-\textbf{Solution 2} (minimum number of switches): Again we will start with $n=2$ and find how many compute nodes are supported with 1 switch, then 2 switches, and so on. Here we will assume $m=4$. We cannot use one switch for two compute nodes because it violates our earlier assumption that no compute node should connect to the same switch twice.
+\textbf{Solution 2} (minimum number of routers): Again we will start with $n=2$ and find how many compute nodes are supported with 1 router, then 2 routers, and so on. Here we will assume $m=4$. We cannot use one router for two compute nodes because it violates our earlier assumption that no compute node should connect to the same router twice.
 
-With two switches, we can connect 4 compute nodes.
+With two routers, we can connect 4 compute nodes.
 
 \begin{figure}[h!]
 \begin{center}
@@ -520,12 +520,12 @@ With two switches, we can connect 4 compute nodes.
 \end{center}
 \end{figure}
 
-Clearly this becomes a mess to enumerate systematically. The important point is that the minimum number of switches is higher when $n>1$. This is to be expected since there are more connections per compute node. Compare Fig.~\ref{fig:ngt14},~\ref{fig:ngt16} and Fig.~\ref{fig:fewer_switches_M1},~\ref{fig:fewer_switches_M2}
+Clearly this becomes a mess to enumerate systematically. The important point is that the minimum number of routers is higher when $n>1$. This is to be expected since there are more connections per compute node. Compare Fig.~\ref{fig:ngt14},~\ref{fig:ngt16} and Fig.~\ref{fig:fewer_routers_M1},~\ref{fig:fewer_routers_M2}
 
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[scale=0.3]{pictures/N4_n1_M1_m4}
-\label{fig:fewer_switches_M1}
+\label{fig:fewer_routers_M1}
  \caption{$m=4$, $M=1$, $N=4$.}
 \end{center}
 \end{figure}
@@ -533,7 +533,7 @@ Clearly this becomes a mess to enumerate systematically. The important point is 
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[scale=0.3]{pictures/N6_n1_M2_m4}
-\label{fig:fewer_switches_M2}
+\label{fig:fewer_routers_M2}
  \caption{$m=4$, $M=2$, $N=6$.}
 \end{center}
 \end{figure}
@@ -541,14 +541,14 @@ Clearly this becomes a mess to enumerate systematically. The important point is 
 
 
 \ \\
-As an example using the same parameters as before, when $N=1000$ and $m=24$, the maximum number of switches is now 72,000 (solution 1) and the minimum is greater than the minimum found when $n=1$. The maximum was expected to decrease (compared to the maximum for $n=1$) since there are more ports at the compute node.
+As an example using the same parameters as before, when $N=1000$ and $m=24$, the maximum number of routers is now 72,000 (solution 1) and the minimum is greater than the minimum found when $n=1$. The maximum was expected to decrease (compared to the maximum for $n=1$) since there are more ports at the compute node.
 
 \ \\
-As a check, the difference between the maximum and minimum number of switches should go to zero as $n$ approaches $N-1$. 
+As a check, the difference between the maximum and minimum number of routers should go to zero as $n$ approaches $N-1$. 
 
 \begin{figure}[h!]
 \begin{center}
-\includegraphics[scale=.3]{pictures/maximum_number_of_switches_needed_versus_compute_node_port_count_for_1000_compute_nodes_and_4_ports_per_switch_semilogx}
+\includegraphics[scale=.3]{pictures/maximum_number_of_routers_needed_versus_compute_node_port_count_for_1000_compute_nodes_and_4_ports_per_router_semilogx}
 \label{fig:max}
  \caption{$m=4$, $M=3$, $N=6$.}
 \end{center}
@@ -562,17 +562,17 @@ As a check, the difference between the maximum and minimum number of switches sh
  n=1:(N-1);
  plot(n,M_max)
  figure; plot(1:N-2,M_max,"o","markersize",15)
- xlabel("number of ports per node"); ylabel("maximum number of switches needed"); title("1000 compute nodes, 4 ports per switch")
- print -dpng maximum_number_of_switches_needed_versus_compute_node_port_count_for_1000_compute_nodes_and_4_ports_per_switch.png
- print -deps maximum_number_of_switches_needed_versus_compute_node_port_count_for_1000_compute_nodes_and_4_ports_per_switch.eps
+ xlabel("number of ports per node"); ylabel("maximum number of routers needed"); title("1000 compute nodes, 4 ports per router")
+ print -dpng maximum_number_of_routers_needed_versus_compute_node_port_count_for_1000_compute_nodes_and_4_ports_per_router.png
+ print -deps maximum_number_of_routers_needed_versus_compute_node_port_count_for_1000_compute_nodes_and_4_ports_per_router.eps
  figure; semilogx(1:N-2,M_max,"o","markersize",15)
- xlabel("number of ports per node"); ylabel("maximum number of switches needed"); title("1000 compute nodes, 4 ports per switch")
- print -dpng maximum_number_of_switches_needed_versus_compute_node_port_count_for_1000_compute_nodes_and_4_ports_per_switch_semilogx.png
- print -deps maximum_number_of_switches_needed_versus_compute_node_port_count_for_1000_compute_nodes_and_4_ports_per_switch_semilogx.eps
+ xlabel("number of ports per node"); ylabel("maximum number of routers needed"); title("1000 compute nodes, 4 ports per router")
+ print -dpng maximum_number_of_routers_needed_versus_compute_node_port_count_for_1000_compute_nodes_and_4_ports_per_router_semilogx.png
+ print -deps maximum_number_of_routers_needed_versus_compute_node_port_count_for_1000_compute_nodes_and_4_ports_per_router_semilogx.eps
  figure; loglog(1:N-2,M_max,"o","markersize",15)
- xlabel("number of ports per node"); ylabel("maximum number of switches needed"); title("1000 compute nodes, 4 ports per switch")
- print -dpng maximum_number_of_switches_needed_versus_compute_node_port_count_for_1000_compute_nodes_and_4_ports_per_switch_loglog.png
- print -deps maximum_number_of_switches_needed_versus_compute_node_port_count_for_1000_compute_nodes_and_4_ports_per_switch_loglog.eps
+ xlabel("number of ports per node"); ylabel("maximum number of routers needed"); title("1000 compute nodes, 4 ports per router")
+ print -dpng maximum_number_of_routers_needed_versus_compute_node_port_count_for_1000_compute_nodes_and_4_ports_per_router_loglog.png
+ print -deps maximum_number_of_routers_needed_versus_compute_node_port_count_for_1000_compute_nodes_and_4_ports_per_router_loglog.eps
 \end{verbatim}
  
 \section{network alterations}
@@ -583,38 +583,38 @@ As a check, the difference between the maximum and minimum number of switches sh
  \item pick random pair from connections database {[}cA, s1]
  \item pick random pair from connections database {[}cB, s2]
  \item check that (cA != cB) and (s1 != s2)
- \item check that the suggested rearrange ``{[}cA, s1] and {[}cB, s2] transform to {[}cA, s2] and {[}cB, s1] in connections database'' doesn't create an invalid network (i.e., more than one of the compute ports plugged into the same switch)
+ \item check that the suggested rearrange ``{[}cA, s1] and {[}cB, s2] transform to {[}cA, s2] and {[}cB, s1] in connections database'' doesn't create an invalid network (i.e., more than one of the compute ports plugged into the same router)
  \item rearrange: {[}cA, s1] and {[}cB, s2] transform to {[}cA, s2] and {[}cB, s1] in connections database
 \end{enumerate}
 
-Note: we actually could let the evolution include ``invalid'' networks (i.e., multiple computer ports plugged into same switch). However, this would probably result in a longer evolution (if the optimal network doesn't include this redundancy).
+Note: we actually could let the evolution include ``invalid'' networks (i.e., multiple computer ports plugged into same router). However, this would probably result in a longer evolution (if the optimal network doesn't include this redundancy).
 
-\subsection{swap switch connections}
+\subsection{swap router connections}
 
 \begin{enumerate}
  \item pick random pair from connections database {[}s1, X]
  \item pick random pair from connections database {[}s2, Y]
  \item check that (X != Y) and (s1 != s2)
- \item check that the suggested rearrange ``{[}s1, X] and {[}s2, Y] transform to {[}s2, X] and {[}s1, Y] in connections database'' doesn't create an invalid network (i.e., more than one of the compute ports plugged into the same switch)
+ \item check that the suggested rearrange ``{[}s1, X] and {[}s2, Y] transform to {[}s2, X] and {[}s1, Y] in connections database'' doesn't create an invalid network (i.e., more than one of the compute ports plugged into the same router)
  \item rearrange: {[}s1, X] and {[}s2, Y] transform to {[}s1, Y] and {[}s2, X] in connections database
 \end{enumerate}
 
-It appears that ``swap switch connections'' and ``swap computer connections'' have sufficient overlap that they can be merged to one routine.
+It appears that ``swap router connections'' and ``swap computer connections'' have sufficient overlap that they can be merged to one routine.
 
-\subsection{swapping sets of connections on switches}
+\subsection{swapping sets of connections on routers}
 
 \begin{enumerate}
  \item pick random pair from connections database {[}s1, X1]
- \item pick random pair from connections database with same switch, {[}s1, X2]
+ \item pick random pair from connections database with same router, {[}s1, X2]
  \item pick random pair from connections database {[}s2, Y1]
- \item pick random pair from connections database with same switch, {[}s1, Y2]
+ \item pick random pair from connections database with same router, {[}s1, Y2]
  \item check that (s1 != s2) and  (X1 != Y1) and (X1 != Y2) and (X2 != Y1)\\
  Note that we don't have to check either (X1 != X2) or (Y1 != Y2) as this is done when the initial valid network is created
  \item check that the suggested rearrange doesn't create an invalid network 
  \item rearrange: {[}s1, X1], {[}s1, X2], {[}s2, Y1], {[}s2, Y2] transform to {[}s1, Y1], {[}s1, Y2], {[}s2, X1], {[}s2, X2] in connections database
 \end{enumerate}
 
-Q: is swapping multiple ports between two switches distinct from performing the same number of swaps on individual port pairs on switches?\\
+Q: is swapping multiple ports between two routers distinct from performing the same number of swaps on individual port pairs on routers?\\
 For example,\\
 ``{[}s1, X1], {[}s1, X2], {[}s2, Y1], {[}s2, Y2] transform to {[}s1, Y1], {[}s1, Y2], {[}s2, X1], {[}s2, X2]'' is equivalent to\\
 ``{[}s1, X1], {[}s2, Y1] transforms to {[}s1, Y1], {[}s2, X1]\\
@@ -626,13 +626,13 @@ and\\
 \subsection{bisection bandwidth}
 Page 52 of the thesis ``A complexity theory for VLSI'' by C. Thompson (1980) defines bisection bandwidth for communication graphs as half the compute nodes being separated.
 
-How to measure bisection bandwidth: chose a random set of half the compute nodes. Determine how many cuts need to be made to separate the two halves. There are many possible combinations of switches, and which nodes are in which half also matters.
+How to measure bisection bandwidth: chose a random set of half the compute nodes. Determine how many cuts need to be made to separate the two halves. There are many possible combinations of routers, and which nodes are in which half also matters.
 
 Question posted to \href{https://groups.google.com/d/topic/networkx-discuss/hv_SzY-uaTw/discussion}{Networkx Google Group}
 
 Question: how to halve the compute nodes?\\
 
-Simplification: consolidate compute nodes which are on the same switch. This only applies to compute nodes with one port.
+Simplification: consolidate compute nodes which are on the same router. This only applies to compute nodes with one port.
 
 Idea: use strong repulsion between the compute nodes?
 
