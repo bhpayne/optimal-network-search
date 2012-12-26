@@ -650,6 +650,8 @@ Similarly, the number of (unequal) router partitions is $M!$. Thus the number of
 \begin{equation}
  U = M! \prod_{x=0}^{N/2}(N-x)
 \end{equation}
+Note: no dependence on number of ports per router or number of ports per computer.
+
 If we want to find the minimum bisection, then an (orderly) exhaustive search is necessary. Instead, do a random search (random swaps of edges) and have some confidence of having found the minimum.
 
 Given $U$ items, how many picks $p$ are needed to get a specific item with a certain confidence level $q$. Constraints: (1) the search $p$ doesn't stop when the item is found, (2) picks are made with replacement -- there are always $U$ items.
