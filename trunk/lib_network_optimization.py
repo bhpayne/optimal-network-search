@@ -7,6 +7,12 @@ import pickle # serialize data output
 # import cPickle as pickle # "upto 1000 times faster because it is in C"
 import itertools           # for generating pairs of computers 
 
+
+#import networkx as nx
+#G=nx.Graph()
+#G.add_edges_from([(1,2),(2,3),(1,3)])
+
+
 # https://en.wikipedia.org/wiki/Cut_(graph_theory)
 # https://en.wikipedia.org/wiki/Connectivity_(graph_theory)
 # https://en.wikipedia.org/wiki/Minimum_cut
@@ -373,7 +379,15 @@ def draw_graph_pictures(connections,name):
   ##plt.show()
   #plt.savefig("networkx_spectral_"+name+".png")
   plt.close()
-  
+  Gviz=G
+  nx.draw_graphviz(Gviz,prog='neato')
+  # the following doesn't work because it gets over-written by write_dot()
+  #stream=file('networkx_graphviz_'+name+'.dot','w')
+  #stream.write('# neato -Tpng networkx_graphviz_'+name+'.dot > networkx_graphviz_'+name+'.png')
+  #stream.close()
+  nx.write_dot(Gviz,'networkx_graphviz_'+name+'.dot')
+  os.system('neato -Tpng networkx_graphviz_'+name+'.dot > networkx_graphviz_'+name+'.png')
+  plt.close()
   
   
 def create_arrays_for_nodes(number_of_nodes,number_of_ports_per_node,const):
