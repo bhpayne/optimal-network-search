@@ -161,7 +161,7 @@ while (time_marker<number_of_iterations):
       search_indx=search_indx+1
   if (search_indx==valid_path_search_limit):
     print("reached valid_path_search_limit. Exiting")
-    done_searching(metric_initial,metric_best,connections_best,tracker,metric_name)
+    done_searching(metric_initial,metric_best,connections_best,tracker,metric_name_file,metric_name_label)
     
   if (use_hop_count):
     metric_new=float(sum(hop_count_distribution_new))/len(hop_count_distribution_new)
@@ -186,4 +186,4 @@ while (time_marker<number_of_iterations):
     # else: keep existing connections
   time_marker=time_marker+1
 
-done_searching(metric_initial,metric_best,connections_best,tracker,metric_name)
+done_searching(metric_initial,metric_best,connections_best,tracker,metric_name_file,metric_name_label)
