@@ -32,9 +32,15 @@ import matplotlib.pyplot as plt
 import random
 from operator import mul # compute a product
 import math
+import yaml
+import time
 
-def done_searching(metric_initial,metric_best,connections_best,tracker,metric_name_file,metric_name_label):
+
+def done_searching(metric_initial,metric_best,connections_best,tracker,metric_name_file,metric_name_label,t_start):
   print("initial: "+str(metric_initial)+", final best: "+str(metric_best))
+  stream=file('network_connections_final.log','w')
+  yaml.dump({'connections':connections},stream)
+  stream.close()
   nopt.draw_graph_pictures(connections_best,"final")  
   plt.xlabel('iteration')
   plt.ylabel(metric_name_label)
@@ -42,8 +48,9 @@ def done_searching(metric_initial,metric_best,connections_best,tracker,metric_na
   #plt.show()
   plt.savefig("networkx_"+metric_name_file+"_versus_iterations.png")
   plt.close()
+  print("Total elapsed time: "+str(time.clock()-t_start)+" seconds")
 
-def how_many_picks(confidence,number_of_computers,number_of_routers):
+def how_many_picks(confidence,number_of_computers,number_of_routers,max_picks):
   #number of picks p = \frac{\log(1-c)}{\log(1-(1/U))}
   #where U = M! \prod_{x=0}^{N/2}(N-x)
   if ((number_of_computers%2)==0):
@@ -54,49 +61,47 @@ def how_many_picks(confidence,number_of_computers,number_of_routers):
     print("warning: total number of permutations "+str(total_number)+" is too large for python float.")
     print("Setting number of picks = 100")
     # total_number is almost always too large for realistic networks to find bisection minimum with any confidence level
-    number_of_picks=100
+    number_of_picks=max_picks
   else:
-    number_of_picks=math.ceil(math.log(1.0-confidence)/math.log(1.0-(1.0/(total_number+0.0))))
+    number_of_picks=math.ceil(math.log(1.0-((confidence+0.0)/100.0))/math.log(1.0-(1.0/(total_number+0.0))))
   return number_of_picks
 #************ MAIN BODY *********************
 
-number_of_iterations=1000 # how many evolutions to make. Must be a positive integer
-max_number_of_swaps=20 # how big is the step size which defines "local" neighborhood? Must be a positive integer 
-random_network_search_limit=1000 # used for random graph generation. Must be a positive integer
-valid_path_search_limit=1000 # Must be a positive integer
-search_mod_alert=20 # how often to display that no path modification has been found. Must be a positive integer
+t_start = time.clock()
+
+input_stream=file('network_parameters.input','r')
+input_data=yaml.load(input_stream)
+
+confidence_of_finding_minimum_bisection=input_data["confidence"]
+max_picks=input_data["max_picks"]
+search_mod_alert=input_data["search_mod_alert"]
+number_of_iterations=input_data["number_of_iterations"]
+random_network_search_limit=input_data["random_network_search_limit"]
+valid_path_search_limit=input_data["valid_path_search_limit"]
+max_number_of_swaps=input_data["max_number_of_swaps"]
+specify_connections_input=input_data["specify_connections_input"]
+connections=input_data["connections"]
+use_hop_count=input_data["use_hop_count"]
+use_simulated_annealing=input_data["use_simulated_annealing"]
+
+number_of_computers=input_data["number_of_computers"]
+number_of_ports_per_computer=input_data["number_of_ports_per_computer"]
+number_of_routers=input_data["number_of_routers"]
+number_of_ports_per_router=input_data["number_of_ports_per_router"]
+
+input_stream.close()
+
+nopt.sanity_checks(number_of_routers,number_of_computers,number_of_ports_per_computer,number_of_ports_per_router)
+
+t_read_input = time.clock() - t_start # CPU seconds elapsed 
+#print("time to read input: "+str(t_read_input)+" seconds")
 
 found_valid_initial_graph=False
 search_indx=0
 while ((not found_valid_initial_graph) and (search_indx<random_network_search_limit)):
-  if (True):
-    number_of_routers=5
-    number_of_ports_per_router=20
-    number_of_computers=30
-    number_of_ports_per_computer=1
+
+  if (not specify_connections_input):
     connections = nopt.generate_random_network(number_of_computers,number_of_ports_per_computer,number_of_routers,number_of_ports_per_router,random_network_search_limit)
-    nopt.sanity_checks(number_of_routers,number_of_computers,number_of_ports_per_computer,number_of_ports_per_router)
-
-  if (False):
-    number_of_routers=2
-    number_of_ports_per_router=6
-    number_of_computers=6
-    number_of_ports_per_computer=1
-    connections=[[-1,1],[-2,1],[-3,1],[-4,1],[-5,1],[1,2],[2,-6]]
-
-  if (False):
-    number_of_routers=4
-    number_of_ports_per_router=7
-    number_of_computers=8
-    number_of_ports_per_computer=1
-    connections=[[-1,1],[-2,1],[-3,1],[-4,1],[-5,1],[1,2],[2,-6],[1,3],[3,-7],[3,4],[4,-8]]
-
-  if (False):
-    number_of_routers=4
-    number_of_ports_per_router=16
-    number_of_computers=16
-    number_of_ports_per_computer=1
-    connections=[[-1,1],[-2,1],[-3,1],[-4,1],[-5,1],[-6,1],[-7,1],[-8,1],[-9,1],[-10,1],[-11,1],[-12,1],[-13,1],[1,2],[2,-14],[1,3],[3,-15],[1,4],[4,-16]]
   
   #alternatives to random graph:
   #connections = nopt.generate_2D_mesh_network(number_of_rows,number_of_columns)
@@ -113,13 +118,17 @@ while ((not found_valid_initial_graph) and (search_indx<random_network_search_li
     print("initial network is segmented. Fix the random network generation algorithm")
     found_valid_initial_graph=False
 
+t_found_initial_graph=time.clock()-t_read_input
+print("time to find initial network: "+str(t_found_initial_graph)+" seconds")
 # if you reach here, then the initial graph has been found to be valid
 connections_best=connections
+stream=file('network_connections_initial.log','w')
+yaml.dump({'connections':connections},stream)
+stream.close()
+
 nopt.draw_graph_pictures(connections_best,"initial")
 
 tracker=[]
-use_hop_count=False
-#use_hop_count=True
 if (use_hop_count):
   metric_name_file="average_hop_count"
   metric_name_label="average hop count"
@@ -130,8 +139,7 @@ if (use_hop_count):
 else:
   metric_name_file="minimum_bisection_count"
   metric_name_label="minimum bisection count"
-  confidence_of_finding_minimum_bisection=0.9 # 0.9 = 90%
-  number_of_picks=how_many_picks(confidence_of_finding_minimum_bisection,number_of_computers,number_of_routers)
+  number_of_picks=how_many_picks(confidence_of_finding_minimum_bisection,number_of_computers,number_of_routers,max_picks)
   bisection_array=[]
   for bcount in range(number_of_picks):
     bisection_count=nopt.fitness_function_bisection_count(number_of_computers,number_of_routers,connections)
@@ -139,9 +147,9 @@ else:
   metric_best=min(bisection_array)
   metric_initial=min(bisection_array)
 
-time_marker=0
-while (time_marker<number_of_iterations):
-  #print("reached while loop")
+temperature_indx=0
+while (temperature_indx<number_of_iterations):
+  t_find_altered_graph_previous=time.clock()
   found_valid_mutation=False
   search_indx=0
   while ((not found_valid_mutation) and (search_indx<valid_path_search_limit)):
@@ -161,8 +169,12 @@ while (time_marker<number_of_iterations):
       search_indx=search_indx+1
   if (search_indx==valid_path_search_limit):
     print("reached valid_path_search_limit. Exiting")
-    done_searching(metric_initial,metric_best,connections_best,tracker,metric_name_file,metric_name_label)
-    
+    done_searching(metric_initial,metric_best,connections_best,tracker,metric_name_file,metric_name_label,t_start)
+
+  t_find_altered_graph_new=time.clock()-t_find_altered_graph_previous
+  #print("time to find altered network: "+str(t_find_altered_graph_new)+" seconds")
+  
+  t_metric_start=time.clock()
   if (use_hop_count):
     metric_new=float(sum(hop_count_distribution_new))/len(hop_count_distribution_new)
   else: # bisection
@@ -173,17 +185,23 @@ while (time_marker<number_of_iterations):
     metric_new=min(bisection_array)
   if (metric_new<metric_best):
     #print("improvement found")
-    print ("new best "+metric_name_label+" is "+str(metric_new)+" and old was "+str(metric_best))
+    print("new best "+metric_name_label+" is "+str(metric_new)+" and old was "+str(metric_best))
+    print("Total elapsed time: "+str(time.clock()-t_start)+" seconds")
     metric_best=metric_new
     connections_best=connections_new
     connections=connections_new
   else:
     #print ("new "+metric_name_label+" is "+str(metric_new)+" and best remains "+str(metric_best))
     tracker.append(metric_new)
-    # deciding whether connections=connections_new is a function of temperature, aka time
-    if (random.random()>(time_marker/number_of_iterations)): # biased coin flip: http://stackoverflow.com/questions/477237/how-do-i-simulate-flip-of-biased-coin-in-python
+    if (use_simulated_annealing):
+      # deciding whether connections=connections_new is a function of temperature
+      if (random.random()>(temperature_indx/number_of_iterations)): # biased coin flip: http://stackoverflow.com/questions/477237/how-do-i-simulate-flip-of-biased-coin-in-python
+        connections=connections_new
+      # else: keep existing connections
+    else:
       connections=connections_new
-    # else: keep existing connections
-  time_marker=time_marker+1
-
-done_searching(metric_initial,metric_best,connections_best,tracker,metric_name_file,metric_name_label)
+  temperature_indx=temperature_indx+1
+  t_metric_elapsed=time.clock()-t_metric_start
+  #print("time to determine metric: "+str(t_metric_elapsed)+" seconds. Total elapsed time: "+str(time.clock()-t_start)+" seconds")
+  
+done_searching(metric_initial,metric_best,connections_best,tracker,metric_name_file,metric_name_label,t_start)
