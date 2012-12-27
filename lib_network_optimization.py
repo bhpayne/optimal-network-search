@@ -12,10 +12,12 @@ import itertools           # for generating pairs of computers
 #G=nx.Graph()
 #G.add_edges_from([(1,2),(2,3),(1,3)])
 
+#******************************************************************************
 
-def fitness_function_bisection_count_drawers(number_of_drawers,connections)
+def fitness_function_bisection_count_drawers(number_of_drawers,connections):
   return bisection_count
 
+#******************************************************************************
 # https://en.wikipedia.org/wiki/Cut_(graph_theory)
 # https://en.wikipedia.org/wiki/Connectivity_(graph_theory)
 # https://en.wikipedia.org/wiki/Minimum_cut
@@ -36,7 +38,7 @@ def fitness_function_bisection_count_computers_and_routers(number_of_computers,n
   #print right_partition_computers
 
   # 20121220: I don't think the algorithm below has any strong advantages yet, so I'm going to due a brute-force search
-  #**********************************
+  #*****************
   ## now that we know which computers we care about, grab the routers pluged into those computers
   ## routers with computers only in the "left" set are assigned to the new "left (routers-only)" set; similarly routers with computers only in the "right" set are assigned to "right (routers-only)"
   ## some routers will have computers plugged into both "left" and "right" sets. Assign these routers to "left" and "right" randomly (via a coin flip biased on number of left and right computers)
@@ -52,7 +54,7 @@ def fitness_function_bisection_count_computers_and_routers(number_of_computers,n
     #else: # this_router connects with computers on both left and right sides
       #place this_router in (left_side or right_side, bias based on number of computers on left_side versus right_side)
   #count number of connections between left_side and right_side
-  #**********************************
+  #*******************
   # Brute-force bisection search
   #OLD: left_partition_routers=random.sample(all_routers,random.randint(0,number_of_routers) # this works, but I'm not sure how to get the right half elegantly.
   # 1) grab a random number of switches
@@ -88,9 +90,23 @@ def fitness_function_bisection_count_computers_and_routers(number_of_computers,n
   return bisection_count
   #print ("bisection count="+str(bisection_count))
   
+#******************************************************************************
 def fitness_function_find_all_drawer_hop_lengths(number_of_drawers,connections):
+  G=convert_connections_to_G(connections)  
+  lengths=nx.all_pairs_shortest_path_length(G)
+  #print lengths
+  hop_count_distribution=[]
+  all_pairs=list(itertools.combinations(range(number_of_drawers), 2))
+  for pair_indx in range(len(all_pairs)):
+    drawerA=all_pairs[pair_indx][0]
+    drawerB=all_pairs[pair_indx][1]
+    #print("drawer A = "+str(drawerA))
+    #print("drawer B = "+str(drawerB))
+    hop_count_distribution.append(lengths[drawerA][drawerB])
+    #print("successful hop count")
   return hop_count_distribution
   
+#******************************************************************************
 def fitness_function_find_all_compute_hop_lengths(number_of_computers,connections):
   all_pairs=list(itertools.combinations(range(1,number_of_computers+1), 2))
 
@@ -113,6 +129,7 @@ def fitness_function_find_all_compute_hop_lengths(number_of_computers,connection
     all_lengths.append(length_between_compute_nodes)
   return all_lengths
 
+#******************************************************************************
 def convert_connections_to_G(connections):
   G=nx.Graph()
   G.clear()
@@ -120,6 +137,7 @@ def convert_connections_to_G(connections):
   G.add_edges_from(connections)
   return G
 
+#******************************************************************************
 def make_alteration_remove_router_router_edge(number_of_routers,number_of_computers,connections,number_of_ports_per_router,random_network_search_limit):
   flattened_connections = list(itertools.chain(connections))
 
@@ -158,9 +176,45 @@ def make_alteration_remove_router_router_edge(number_of_routers,number_of_comput
       valid_removal=False
       slimit=slimit+1
   return connections
+
+#******************************************************************************
+def make_alteration_add_drawer_drawer_edge(number_of_drawers,connections,number_of_ports_per_drawer,random_network_search_limit):
+  flattened_connections = list(itertools.chain(*connections))
+  found_drawer_with_empty_ports=False
+  search_indx=0
+  while ((not found_drawer_with_empty_ports) and (search_indx<number_of_drawers)):
+    drawerA=random.randint(0,number_of_drawers) # pick a random drawer A
+    #print("drawer A: "+str(drawerA))
+    print(flattened_connections.count(drawerA))
+    if (flattened_connections.count(drawerA)<number_of_ports_per_drawer):    # does drawer A have open ports?
+      found_drawer_with_empty_ports=True
+      break
+    else:
+      search_indx=search_indx+1
+  if (search_indx==number_of_drawers):
+    print('didn\'t find a drawer to connect after '+str(number_of_drawers)+' tries')
+    return connections
+  # at this point we have found drawerA and it has open ports
+  found_second_drawer_with_empty_ports=False
+  search_indx=0
+  while ((not found_second_drawer_with_empty_ports) and (search_indx<number_of_drawers)):
+    drawerB=random.randint(0,number_of_drawers) # pick a random drawer B
+    if ((flattened_connections.count(drawerB)<number_of_ports_per_drawer) and (drawerA != drawerB)):    # does drawer B have open ports and is distinct from A?
+      found_second_drawer_with_empty_ports=True
+      break
+    else:
+      search_indx=search_indx+1
+  if (search_indx==number_of_drawers):
+    print('didn\'t find a second drawer to connect after '+str(number_of_drawers)+' tries')
+    return connections
+  #print('drawerA: '+str(drawerA)+' and drawerB: '+str(drawerB))
+  connections.append([drawerA,drawerB])    # add connection between A,B
+  return connections
+
   
+#******************************************************************************
 def make_alteration_add_router_router_edge(number_of_routers,connections,number_of_ports_per_router,random_network_search_limit):
-  flattened_connections = list(itertools.chain(connections))
+  flattened_connections = list(itertools.chain(*connections))
   found_router_with_empty_ports=False
   search_indx=0
   while ((not found_router_with_empty_ports) and (search_indx<number_of_routers)):
@@ -191,9 +245,42 @@ def make_alteration_add_router_router_edge(number_of_routers,connections,number_
   connections.append([routerA,routerB])    # add connection between A,B
   return connections
 
+#******************************************************************************
+# may try replacing this with 
+# http://networkx.lanl.gov/reference/generated/networkx.algorithms.swap.double_edge_swap.html#networkx.algorithms.swap.double_edge_swap
 def make_alteration_swap_ports_drawers(number_of_drawers,connections,random_network_search_limit):
+  found_valid_edge_pair=False
+  search_indx=0
+  while ((not found_valid_edge_pair) and (search_indx<random_network_search_limit)):
+    edgeA=connections.pop(random.randrange(len(connections))) # get a random edge from the connections array
+    edgeB=connections.pop(random.randrange(len(connections))) # get another random edge from the connections array
+    if (not ((edgeA[0]==edgeB[0]) or (edgeA[1]==edgeB[1]))):
+      found_valid_edge_pair=True
+      break
+    else:
+      search_indx=search_indx+1
+  if (search_indx==random_network_search_limit):
+    print("valid edge swap not found in "+str(random_network_search_limit)+" tries")
+  #print("edgeA before:")
+  #print edgeA
+  #print("edgeB before:")
+  #print edgeB
+  edgeA_swapped=[]
+  edgeB_swapped=[]
+  edgeA_swapped.append(edgeA[0])  #   A =[X, Y] and B =[W, Z]            X--Y     X  Y
+  edgeA_swapped.append(edgeB[0])  #   transform to                            ==> |  |
+  edgeB_swapped.append(edgeA[1])  #   A'=[X, W] and B'=[Y, Z]            W--Z     W  Z
+  edgeB_swapped.append(edgeB[1]) 
+  connections.append(edgeA_swapped)
+  connections.append(edgeB_swapped)
+  #print("edgeA after:")
+  #print edgeA_swapped
+  #print("edgeB after:")
+  #print edgeB_swapped
+  #draw_drawer_graph_pictures(connections,"after_alteration")
   return connections
   
+#******************************************************************************
 # output: connections
 # note: this cannot be replaced with
 # http://networkx.lanl.gov/reference/generated/networkx.algorithms.swap.double_edge_swap.html#networkx.algorithms.swap.double_edge_swap
@@ -256,10 +343,12 @@ def make_alteration_swap_ports_routers_and_computers(number_of_routers,number_of
   return connections
 
   
+#******************************************************************************
 #def swap_multiple_router_ports(number_of_routers,number_of_computers,connections):
   #routers=range(1,number_of_routers+1)
 
-## http://stackoverflow.com/questions/853023/how-can-i-find-the-locations-of-an-item-in-a-python-list-of-lists
+#******************************************************************************
+# http://stackoverflow.com/questions/853023/how-can-i-find-the-locations-of-an-item-in-a-python-list-of-lists
 #def get_positions(xs, item): # "xs" is the list of lists, "item" is what you are looking for
     #if isinstance(xs, list):
         #for i, it in enumerate(xs):
@@ -268,6 +357,7 @@ def make_alteration_swap_ports_routers_and_computers(number_of_routers,number_of
     #elif xs == item:
         #yield ()
   
+#******************************************************************************
 def sanity_checks(number_of_routers,number_of_computers,number_of_ports_per_computer,number_of_ports_per_router):
   if ((number_of_computers%1)!=0):
     print ("[Sanity Error] number of computers must be an integer")
@@ -315,6 +405,7 @@ def sanity_checks(number_of_routers,number_of_computers,number_of_ports_per_comp
     print ("[Sanity Warning] (number of routers)*(number of ports per router) does not equal (number of computers)*(number of ports per computer)")
     print ("Therefore, you aren't using all available connections")
 
+#******************************************************************************
 def create_graphviz_file(number_of_routers,number_of_computers,connections):
   fil=open('network.gv', 'w')
 
@@ -349,6 +440,7 @@ def create_graphviz_file(number_of_routers,number_of_computers,connections):
   
   
 
+#******************************************************************************
 def writeGraphToFile(number_of_routers,number_of_computers,connections):
   output=open('graph.pkl','wb')
   pickle.dump(number_of_routers,output)
@@ -356,6 +448,7 @@ def writeGraphToFile(number_of_routers,number_of_computers,connections):
   pickle.dump(connections,output)
   output.close()
 
+#******************************************************************************
 def readGraphFromFile():
   pkl_file=open('graph.pkl','rb') # read
   number_of_routers=pickle.load(pkl_file)
@@ -365,9 +458,7 @@ def readGraphFromFile():
   return number_of_routers,number_of_computers,connections
 
   
-  
-  
-  
+#******************************************************************************
 def draw_drawer_graph_pictures(connections,name):
   G=convert_connections_to_G(connections)
   nx.draw(G)
@@ -379,6 +470,7 @@ def draw_drawer_graph_pictures(connections,name):
   #os.system('neato -Tpng networkx_graphviz_'+name+'.dot > networkx_graphviz_'+name+'.png')
   plt.close()
 
+#******************************************************************************
 def draw_computer_and_router_graph_pictures(connections,name):
   G=convert_connections_to_G(connections)
   compute_color='red'
@@ -408,13 +500,15 @@ def draw_computer_and_router_graph_pictures(connections,name):
   plt.close()
   
   
+#******************************************************************************
 def create_arrays_for_nodes(number_of_nodes,number_of_ports_per_node,const):
   node_arry=[]
   for node_indx in range(1,number_of_nodes+1): # the shift by +1 is to avoid use of "0" in numeric list
     for port_indx in range(number_of_ports_per_node):
-      node_arry.append(node_indx*const)
+      node_arry.append(node_indx*const) # values are either negative or positive
   return node_arry
 
+#******************************************************************************
 def plug_computers_in_routers(computers_arry,router_arry,connections):
   for computer_indx in range(len(computers_arry)):
     found_valid_pair=0 # false
@@ -434,6 +528,7 @@ def plug_computers_in_routers(computers_arry,router_arry,connections):
 	connections.append(this_pair)
 	router_arry.remove(this_router_port) # remove router port from pool of available ports
 
+#******************************************************************************
 # depends on: no other functions
 # returns: connections
 def plug_routers_into_remaining_routers(number_of_computers,number_of_ports_per_computer,router_arry,connections,search_loop_limit):
@@ -464,6 +559,7 @@ def plug_routers_into_remaining_routers(number_of_computers,number_of_ports_per_
 	router_arry.remove(routerportB) # remove router port from pool of available ports
 	loop_count=0
 
+#******************************************************************************
 # as an example,
 # compute_color='red'
 # router_color='blue'
@@ -480,6 +576,7 @@ def color_graph_nodes(G,compute_color,router_color):
       exit(1)
   return node_color_list
 	
+#******************************************************************************
 # http://networkx.lanl.gov/reference/generators.html
 def generate_2D_mesh_network(number_of_rows,number_of_columns):
   if ((number_of_rows<2) or (number_of_columns<2)):
@@ -496,6 +593,7 @@ def generate_2D_mesh_network(number_of_rows,number_of_columns):
   connections=G.edges()
   return connections
   
+#******************************************************************************
 # as an example,
 # dimensions=[2,3,5]
 # toroidal_true_mesh_false=True
@@ -510,12 +608,12 @@ def generate_ND_toroidal_or_mesh_network(dimensions,toroidal_true_mesh_false):
   connections=G.edges()
   return connections
 
-	
+#******************************************************************************
 # depends on "sanity_checks" "create_arrays_for_nodes" "plug_computers_in_routers" "plug_routers_into_remaining_routers"
 # output: "connections"
 def generate_random_computer_and_router_network(number_of_computers,number_of_ports_per_computer,number_of_routers,number_of_ports_per_router,search_loop_limit):
 
-  print_random_network=0 # false
+  print_random_network=False # for trouble shooting
   
   # create 1D array of computers given the ports\
   const=-1
@@ -562,7 +660,42 @@ def generate_random_computer_and_router_network(number_of_computers,number_of_po
   # to do: remove unused routers and routers connected to only one computer
   return connections
   
-  
+#******************************************************************************
+ 
 def generate_random_drawer_network(number_of_drawers,number_of_ports_per_drawer,random_network_search_limit):
   connections=[] # declare new list for the edge pairs
+  # create an array of all available ports
+  all_ports=[]
+  for drawer_indx in range(number_of_drawers):
+    for port_indx in range(number_of_ports_per_drawer):
+      all_ports.append(drawer_indx)
+  random.shuffle(all_ports)
+  # find pairs (can be redundant) which are not of the form [A,A]
+  search_count=0
+  while ((len(all_ports)>1) and (search_count<random_network_search_limit)):
+    found_valid_pair=False
+    search_indx=0
+    while ((not found_valid_pair) and (search_indx<random_network_search_limit)):
+      drawerA=all_ports.pop(0)
+      drawerB=all_ports.pop(0)
+      if (drawerA==drawerB):
+	all_ports.append(drawerA)
+	all_ports.append(drawerB)
+	random.shuffle(all_ports)
+      else:
+	found_valid_pair=True
+	new_pair=[]
+	new_pair.append(drawerA)
+	new_pair.append(drawerB)
+	connections.append(new_pair)
+	break
+      search_indx=search_indx+1
+    #if (search_indx==random_network_search_limit):
+      #print("reached maximum number of tries for pair, had to stop loop")
+    search_count=search_count+1
+  if (search_count==random_network_search_limit):
+    print("reached maximum number of searches, had to stop loop")
+  print("connections:")
+  print connections
   return connections
+  

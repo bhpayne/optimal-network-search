@@ -63,7 +63,10 @@ def how_many_picks(confidence,number_of_computers,number_of_routers,max_picks):
     # total_number is almost always too large for realistic networks to find bisection minimum with any confidence level
     number_of_picks=max_picks
   else:
-    number_of_picks=math.ceil(math.log(1.0-((confidence+0.0)/100.0))/math.log(1.0-(1.0/(total_number+0.0))))
+    number_of_picks=int(math.ceil(math.log(1.0-((confidence+0.0)/100.0))/math.log(1.0-(1.0/(total_number+0.0)))))
+  if (number_of_picks>max_picks):
+    number_of_picks=max_picks
+  print ("number of picks is "+str(number_of_picks))
   return number_of_picks
 #************ MAIN BODY *********************
 
