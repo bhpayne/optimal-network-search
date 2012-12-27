@@ -39,7 +39,7 @@ def done_searching(metric_initial,metric_best,connections_best,tracker,metric_na
   stream=file('network_connections_final.log','w')
   yaml.dump({'connections':connections},stream)
   stream.close()
-  nopt.draw_graph_pictures(connections_best,"final")  
+  nopt.draw_drawer_graph_pictures(connections_best,"final")  
   plt.xlabel('iteration')
   plt.ylabel(metric_name_label)
   plt.plot(range(len(tracker)),tracker)  
@@ -47,6 +47,7 @@ def done_searching(metric_initial,metric_best,connections_best,tracker,metric_na
   plt.savefig("networkx_"+metric_name_file+"_versus_iterations.png")
   plt.close()
   print("Total elapsed time: "+str(time.clock()-t_start)+" seconds")
+  exit()
 
 def how_many_picks(confidence,number_of_drawers,max_picks):
   #number of picks p = \frac{\log(1-c)}{\log(1-(1/U))}
@@ -61,13 +62,16 @@ def how_many_picks(confidence,number_of_drawers,max_picks):
     # total_number is almost always too large for realistic networks to find bisection minimum with any confidence level
     number_of_picks=max_picks
   else:
-    number_of_picks=math.ceil(math.log(1.0-((confidence+0.0)/100.0))/math.log(1.0-(1.0/(total_number+0.0))))
+    number_of_picks=int(math.ceil(math.log(1.0-((confidence+0.0)/100.0))/math.log(1.0-(1.0/(total_number+0.0)))))
+  if (number_of_picks>max_picks):
+    number_of_picks=max_picks
+  print ("number of picks is "+str(number_of_picks))
   return number_of_picks
 #************ MAIN BODY *********************
 
 t_start = time.clock()
 
-input_stream=file('network_parameters.input','r')
+input_stream=file('parameters_drawers.input','r')
 input_data=yaml.load(input_stream)
 
 confidence_of_finding_minimum_bisection=input_data["confidence"]
@@ -140,22 +144,22 @@ while (temperature_indx<number_of_iterations):
   found_valid_mutation=False
   search_indx=0
   while ((not found_valid_mutation) and (search_indx<valid_path_search_limit)):
-    for alteration_indx in range(random.randint(1,max_number_of_swaps)):
-      connections_new=nopt.make_alteration_swap_ports_drawers(number_of_drawers,connections,random_network_search_limit)
-    connections_new=nopt.make_alteration_add_router_router_edge(number_of_drawers,connections_new,number_of_ports_per_drawer,random_network_search_limit)
+    #for alteration_indx in range(random.randint(1,max_number_of_swaps)):
+    connections_new=nopt.make_alteration_swap_ports_drawers(number_of_drawers,connections,random_network_search_limit)
+    #connections_new=nopt.make_alteration_add_drawer_drawer_edge(number_of_drawers,connections,number_of_ports_per_drawer,random_network_search_limit)
     try:
       hop_count_distribution_new=nopt.fitness_function_find_all_drawer_hop_lengths(number_of_drawers,connections_new)
       found_valid_mutation=True
       break
-    except nx.NetworkXNoPath:
-      #nopt.draw_graph_pictures(connections_new,"this failed")
+    except LookupError:
+      #nopt.draw_drawer_graph_pictures(connections_new,"this failed")
       #print("failed")
       #exit()
       #if ((search_indx%search_mod_alert)==0):
         #print('This alteration segements the network. loop index='+str(search_indx))
       search_indx=search_indx+1
   if (search_indx==valid_path_search_limit):
-    print("reached valid_path_search_limit. Exiting")
+    #print("reached valid_path_search_limit. Exiting")
     done_searching(metric_initial,metric_best,connections_best,tracker,metric_name_file,metric_name_label,t_start)
 
   t_find_altered_graph_new=time.clock()-t_find_altered_graph_previous
