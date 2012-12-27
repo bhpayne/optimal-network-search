@@ -27,10 +27,10 @@
 
 import networkx as nx
 import lib_network_optimization as nopt # Ben's module for graph input/output
-import itertools           # for generating pairs of computers 
+#import itertools           # for generating pairs of computers 
 import matplotlib.pyplot as plt
 import random
-from operator import mul # compute a product
+#from operator import mul # compute a product
 import math
 import yaml
 import time
@@ -41,7 +41,7 @@ def done_searching(metric_initial,metric_best,connections_best,tracker,metric_na
   stream=file('network_connections_final.log','w')
   yaml.dump({'connections':connections},stream)
   stream.close()
-  nopt.draw_graph_pictures(connections_best,"final")  
+  nopt.draw_computer_and_router_graph_pictures(connections_best,"final")  
   plt.xlabel('iteration')
   plt.ylabel(metric_name_label)
   plt.plot(range(len(tracker)),tracker)  
@@ -54,12 +54,12 @@ def how_many_picks(confidence,number_of_computers,number_of_routers,max_picks):
   #number of picks p = \frac{\log(1-c)}{\log(1-(1/U))}
   #where U = M! \prod_{x=0}^{N/2}(N-x)
   if ((number_of_computers%2)==0):
-    total_number = math.factorial(number_of_routers)*reduce(mul,range(number_of_computers/2,number_of_computers))
+    total_number = (math.pow(2,(number_of_computers/2)))*(math.pow(2,number_of_routers))
   else:
-    total_number = math.factorial(number_of_routers)*reduce(mul,range((number_of_computers+1)/2,number_of_computers))
+    total_number = (math.pow(2,((number_of_computers+1)/2)))*(math.pow(2,number_of_routers))
   if (math.log(1.0-(1.0/(total_number+0.0)))==0):
-    print("warning: total number of permutations "+str(total_number)+" is too large for python float.")
-    print("Setting number of picks = 100")
+    print("warning: total number of permutations "+str(total_number)+" is too large for search (limited by float).")
+    print("Setting number of picks = "+str(max_picks))
     # total_number is almost always too large for realistic networks to find bisection minimum with any confidence level
     number_of_picks=max_picks
   else:
@@ -69,7 +69,7 @@ def how_many_picks(confidence,number_of_computers,number_of_routers,max_picks):
 
 t_start = time.clock()
 
-input_stream=file('network_parameters.input','r')
+input_stream=file('parameters_computers_and_routers.input','r')
 input_data=yaml.load(input_stream)
 
 confidence_of_finding_minimum_bisection=input_data["confidence"]
@@ -101,7 +101,7 @@ search_indx=0
 while ((not found_valid_initial_graph) and (search_indx<random_network_search_limit)):
 
   if (not specify_connections_input):
-    connections = nopt.generate_random_network(number_of_computers,number_of_ports_per_computer,number_of_routers,number_of_ports_per_router,random_network_search_limit)
+    connections = nopt.generate_random_computer_and_router_network(number_of_computers,number_of_ports_per_computer,number_of_routers,number_of_ports_per_router,random_network_search_limit)
   
   #alternatives to random graph:
   #connections = nopt.generate_2D_mesh_network(number_of_rows,number_of_columns)
@@ -126,7 +126,7 @@ stream=file('network_connections_initial.log','w')
 yaml.dump({'connections':connections},stream)
 stream.close()
 
-nopt.draw_graph_pictures(connections_best,"initial")
+nopt.draw_computer_and_router_graph_pictures(connections_best,"initial")
 
 tracker=[]
 if (use_hop_count):
@@ -142,7 +142,7 @@ else:
   number_of_picks=how_many_picks(confidence_of_finding_minimum_bisection,number_of_computers,number_of_routers,max_picks)
   bisection_array=[]
   for bcount in range(number_of_picks):
-    bisection_count=nopt.fitness_function_bisection_count(number_of_computers,number_of_routers,connections)
+    bisection_count=nopt.fitness_function_bisection_count_computers_and_routers(number_of_computers,number_of_routers,connections)
     bisection_array.append(bisection_count)
   metric_best=min(bisection_array)
   metric_initial=min(bisection_array)
@@ -154,14 +154,14 @@ while (temperature_indx<number_of_iterations):
   search_indx=0
   while ((not found_valid_mutation) and (search_indx<valid_path_search_limit)):
     for alteration_indx in range(random.randint(1,max_number_of_swaps)):
-      connections_new=nopt.make_alteration_swap_ports(number_of_routers,number_of_computers,connections,random_network_search_limit)
+      connections_new=nopt.make_alteration_swap_ports_routers_and_computers(number_of_routers,number_of_computers,connections,random_network_search_limit)
     connections_new=nopt.make_alteration_add_router_router_edge(number_of_routers,connections_new,number_of_ports_per_router,random_network_search_limit)
     try:
       hop_count_distribution_new=nopt.fitness_function_find_all_compute_hop_lengths(number_of_computers,connections_new)
       found_valid_mutation=True
       break
     except nx.NetworkXNoPath:
-      #nopt.draw_graph_pictures(connections_new,"this failed")
+      #nopt.draw_computer_and_router_graph_pictures(connections_new,"this failed")
       #print("failed")
       #exit()
       #if ((search_indx%search_mod_alert)==0):
@@ -180,7 +180,7 @@ while (temperature_indx<number_of_iterations):
   else: # bisection
     bisection_array=[]
     for bcount in range(number_of_picks):
-      bisection_count=nopt.fitness_function_bisection_count(number_of_computers,number_of_routers,connections)
+      bisection_count=nopt.fitness_function_bisection_count_computers_and_routers(number_of_computers,number_of_routers,connections)
       bisection_array.append(bisection_count)
     metric_new=min(bisection_array)
   if (metric_new<metric_best):

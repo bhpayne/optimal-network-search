@@ -13,11 +13,14 @@ import itertools           # for generating pairs of computers
 #G.add_edges_from([(1,2),(2,3),(1,3)])
 
 
+def fitness_function_bisection_count_drawers(number_of_drawers,connections)
+  return bisection_count
+
 # https://en.wikipedia.org/wiki/Cut_(graph_theory)
 # https://en.wikipedia.org/wiki/Connectivity_(graph_theory)
 # https://en.wikipedia.org/wiki/Minimum_cut
 # https://en.wikipedia.org/wiki/Graph_partitioning_problem
-def fitness_function_bisection_count(number_of_computers,number_of_routers,connections):
+def fitness_function_bisection_count_computers_and_routers(number_of_computers,number_of_routers,connections):
   all_computers=range(1,number_of_computers+1)
   all_computers=[comp*-1 for comp in all_computers]
   all_routers=range(1,number_of_routers+1)
@@ -85,7 +88,8 @@ def fitness_function_bisection_count(number_of_computers,number_of_routers,conne
   return bisection_count
   #print ("bisection count="+str(bisection_count))
   
-
+def fitness_function_find_all_drawer_hop_lengths(number_of_drawers,connections):
+  return hop_count_distribution
   
 def fitness_function_find_all_compute_hop_lengths(number_of_computers,connections):
   all_pairs=list(itertools.combinations(range(1,number_of_computers+1), 2))
@@ -186,12 +190,15 @@ def make_alteration_add_router_router_edge(number_of_routers,connections,number_
   #print('routerA: '+str(routerA)+' and routerB: '+str(routerB))
   connections.append([routerA,routerB])    # add connection between A,B
   return connections
+
+def make_alteration_swap_ports_drawers(number_of_drawers,connections,random_network_search_limit):
+  return connections
   
 # output: connections
 # note: this cannot be replaced with
 # http://networkx.lanl.gov/reference/generated/networkx.algorithms.swap.double_edge_swap.html#networkx.algorithms.swap.double_edge_swap
 # since ((router-computer) and (router-computer)) would swap to ((router-router) and (computer-computer)
-def make_alteration_swap_ports(number_of_routers,number_of_computers,connections,random_network_search_limit):
+def make_alteration_swap_ports_routers_and_computers(number_of_routers,number_of_computers,connections,random_network_search_limit):
   # we assume no connection exist of the form computer-computer
   # we need to make alterations which do not introduce computer-computer edges.
   edgeA=connections.pop(random.randrange(len(connections))) # get a random edge from the connections array
@@ -361,7 +368,18 @@ def readGraphFromFile():
   
   
   
-def draw_graph_pictures(connections,name):
+def draw_drawer_graph_pictures(connections,name):
+  G=convert_connections_to_G(connections)
+  nx.draw(G)
+  plt.savefig("networkx_draw_"+name+".png")
+  plt.close()
+  #Gviz=G
+  #nx.draw_graphviz(Gviz,prog='neato')
+  #nx.write_dot(Gviz,'networkx_graphviz_'+name+'.dot')
+  #os.system('neato -Tpng networkx_graphviz_'+name+'.dot > networkx_graphviz_'+name+'.png')
+  plt.close()
+
+def draw_computer_and_router_graph_pictures(connections,name):
   G=convert_connections_to_G(connections)
   compute_color='red'
   router_color='blue'
@@ -495,7 +513,7 @@ def generate_ND_toroidal_or_mesh_network(dimensions,toroidal_true_mesh_false):
 	
 # depends on "sanity_checks" "create_arrays_for_nodes" "plug_computers_in_routers" "plug_routers_into_remaining_routers"
 # output: "connections"
-def generate_random_network(number_of_computers,number_of_ports_per_computer,number_of_routers,number_of_ports_per_router,search_loop_limit):
+def generate_random_computer_and_router_network(number_of_computers,number_of_ports_per_computer,number_of_routers,number_of_ports_per_router,search_loop_limit):
 
   print_random_network=0 # false
   
@@ -542,4 +560,9 @@ def generate_random_network(number_of_computers,number_of_ports_per_computer,num
 
   # at this point, if too many routers are given, there could exist routers which are connected to 0 or 1 computers. 
   # to do: remove unused routers and routers connected to only one computer
+  return connections
+  
+  
+def generate_random_drawer_network(number_of_drawers,number_of_ports_per_drawer,random_network_search_limit):
+  connections=[] # declare new list for the edge pairs
   return connections
