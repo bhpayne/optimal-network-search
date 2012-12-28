@@ -144,9 +144,12 @@ while (temperature_indx<number_of_iterations):
   found_valid_mutation=False
   search_indx=0
   while ((not found_valid_mutation) and (search_indx<valid_path_search_limit)):
-    #for alteration_indx in range(random.randint(1,max_number_of_swaps)):
-    connections_new=nopt.make_alteration_swap_ports_drawers(number_of_drawers,connections,random_network_search_limit)
-    #connections_new=nopt.make_alteration_add_drawer_drawer_edge(number_of_drawers,connections,number_of_ports_per_drawer,random_network_search_limit)
+    # simulated annealing: the number of mutations depends on the temperature
+    if (use_simulated_annealing):
+      for alteration_indx in range(random.randint(1,max_number_of_swaps*(1-(temperature_indx/number_of_iterations)))):
+        connections_new=nopt.make_alteration_swap_ports_drawers(number_of_drawers,connections,random_network_search_limit)
+    else:
+      connections_new=nopt.make_alteration_swap_ports_drawers(number_of_drawers,connections,random_network_search_limit)
     try:
       hop_count_distribution_new=nopt.fitness_function_find_all_drawer_hop_lengths(number_of_drawers,connections_new)
       found_valid_mutation=True
@@ -174,6 +177,7 @@ while (temperature_indx<number_of_iterations):
       bisection_count=nopt.fitness_function_bisection_count_drawers(number_of_drawers,connections)
       bisection_array.append(bisection_count)
     metric_new=min(bisection_array)
+  tracker.append(metric_new)
   if (metric_new<metric_best):
     #print("improvement found")
     print("new best "+metric_name_label+" is "+str(metric_new)+" and old was "+str(metric_best))
@@ -181,16 +185,6 @@ while (temperature_indx<number_of_iterations):
     metric_best=metric_new
     connections_best=connections_new
     connections=connections_new
-  else:
-    #print ("new "+metric_name_label+" is "+str(metric_new)+" and best remains "+str(metric_best))
-    tracker.append(metric_new)
-    if (use_simulated_annealing):
-      # deciding whether connections=connections_new is a function of temperature
-      if (random.random()>(temperature_indx/number_of_iterations)): # biased coin flip: http://stackoverflow.com/questions/477237/how-do-i-simulate-flip-of-biased-coin-in-python
-        connections=connections_new
-      # else: keep existing connections
-    else:
-      connections=connections_new
   temperature_indx=temperature_indx+1
   t_metric_elapsed=time.clock()-t_metric_start
   #print("time to determine metric: "+str(t_metric_elapsed)+" seconds. Total elapsed time: "+str(time.clock()-t_start)+" seconds")
