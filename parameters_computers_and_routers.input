@@ -5,11 +5,11 @@ valid_path_search_limit:     1000   # Must be a positive integer
 search_mod_alert:              20   # how often to display that no path modification has been found. Must be a positive integer
 confidence:                    90   # percent confidence of having found minimum. If too many searches are needed to have this confidence, fall back to "max_picks"
 max_picks:                   1000   # bisection search: how many bisections get measured?
-use_hop_count:              False   # True=use hop count metric; False=use bisection count metric
+use_hop_count:              True   # True=use hop count metric; False=use bisection count metric
 use_simulated_annealing:     True   # if False, then always use the new connections (do brute force search)
 
 number_of_routers:              5
-number_of_ports_per_router:    20
+number_of_ports_per_router:    10
 number_of_computers:           30
 number_of_ports_per_computer:   1
 

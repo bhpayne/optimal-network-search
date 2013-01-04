@@ -90,6 +90,20 @@ number_of_ports_per_computer=input_data["number_of_ports_per_computer"]
 number_of_routers=input_data["number_of_routers"]
 number_of_ports_per_router=input_data["number_of_ports_per_router"]
 
+print("number of computers:          "+str(number_of_computers))
+print("number of ports per computer: "+str(number_of_ports_per_computer))
+print("number of routers:            "+str(number_of_routers))
+print("number of ports per router:   "+str(number_of_ports_per_router))
+if (use_hop_count):
+  print("metric: hop count")
+else:
+  print("metric: bisection count")
+if (use_simulated_annealing):
+  print("using simulated annealing")
+else:
+  print("NOT using simulated annealing")
+  
+
 input_stream.close()
 
 nopt.sanity_checks(number_of_routers,number_of_computers,number_of_ports_per_computer,number_of_ports_per_router)

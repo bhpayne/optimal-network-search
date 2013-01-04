@@ -180,12 +180,14 @@ def make_alteration_remove_router_router_edge(number_of_routers,number_of_comput
 #******************************************************************************
 def make_alteration_add_drawer_drawer_edge(number_of_drawers,connections,number_of_ports_per_drawer,random_network_search_limit):
   flattened_connections = list(itertools.chain(*connections))
+  if (len(flattened_connections)==(number_of_drawers,number_of_ports_per_drawer)):
+    return connections 
   found_drawer_with_empty_ports=False
   search_indx=0
   while ((not found_drawer_with_empty_ports) and (search_indx<number_of_drawers)):
     drawerA=random.randint(0,number_of_drawers) # pick a random drawer A
     #print("drawer A: "+str(drawerA))
-    print(flattened_connections.count(drawerA))
+    #print(flattened_connections.count(drawerA))
     if (flattened_connections.count(drawerA)<number_of_ports_per_drawer):    # does drawer A have open ports?
       found_drawer_with_empty_ports=True
       break
@@ -215,6 +217,13 @@ def make_alteration_add_drawer_drawer_edge(number_of_drawers,connections,number_
 #******************************************************************************
 def make_alteration_add_router_router_edge(number_of_routers,connections,number_of_ports_per_router,random_network_search_limit):
   flattened_connections = list(itertools.chain(*connections))
+  number_of_router_ports_in_use=len([x for x in flattened_connections if x > 0])
+  if (number_of_router_ports_in_use==number_of_routers*number_of_ports_per_router):
+    return connections
+  elif (number_of_router_ports_in_use>number_of_routers*number_of_ports_per_router):
+    print("there is something wrong since number of edges between routers cannot exceed number of routers*number of ports per router")
+    return connections
+  
   found_router_with_empty_ports=False
   search_indx=0
   while ((not found_router_with_empty_ports) and (search_indx<number_of_routers)):
@@ -226,6 +235,7 @@ def make_alteration_add_router_router_edge(number_of_routers,connections,number_
       search_indx=search_indx+1
   if (search_indx==number_of_routers):
     print('didn\'t find a router to connect after '+str(number_of_routers)+' tries')
+    print('number of router ports in use: '+str(number_of_router_ports_in_use))
     return connections
 
   # at this point we have found routerA and it has open ports
@@ -240,6 +250,8 @@ def make_alteration_add_router_router_edge(number_of_routers,connections,number_
       search_indx=search_indx+1
   if (search_indx==number_of_routers):
     print('didn\'t find a second router to connect after '+str(number_of_routers)+' tries')
+    print connections
+    print('number of router ports in use: '+str(number_of_router_ports_in_use))
     return connections
   #print('routerA: '+str(routerA)+' and routerB: '+str(routerB))
   connections.append([routerA,routerB])    # add connection between A,B

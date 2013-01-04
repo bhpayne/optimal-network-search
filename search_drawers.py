@@ -89,6 +89,18 @@ use_simulated_annealing=input_data["use_simulated_annealing"]
 number_of_drawers=input_data["number_of_drawers"]
 number_of_ports_per_drawer=input_data["number_of_ports_per_drawer"]
 
+print("number of drawers:            "+str(number_of_drawers))
+print("number of ports per drawer:   "+str(number_of_ports_per_drawer))
+if (use_hop_count):
+  print("metric: hop count")
+else:
+  print("metric: bisection count")
+if (use_simulated_annealing):
+  print("using simulated annealing")
+else:
+  print("NOT using simulated annealing")
+  
+
 input_stream.close()
 
 t_read_input = time.clock() - t_start # CPU seconds elapsed 
