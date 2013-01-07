@@ -34,15 +34,16 @@ import yaml
 import time
 
 
-def done_searching(metric_initial,metric_best,connections_best,tracker,metric_name_file,metric_name_label,t_start):
+def done_searching(metric_initial,metric_best,connections,tracker_all,tracker_mins,tracker_mins_indx,metric_name_file,metric_name_label,t_start):
   print("initial: "+str(metric_initial)+", final best: "+str(metric_best))
   stream=file('network_connections_final.log','w')
   yaml.dump({'connections':connections},stream)
   stream.close()
-  nopt.draw_drawer_graph_pictures(connections_best,"final")  
+  nopt.draw_drawer_graph_pictures(connections,"final")  
   plt.xlabel('iteration')
   plt.ylabel(metric_name_label)
-  plt.plot(range(len(tracker)),tracker)  
+  plt.plot(range(len(tracker_all)),tracker_all)  
+  plt.plot(tracker_mins_indx,tracker_mins)  
   #plt.show()
   plt.savefig("networkx_"+metric_name_file+"_versus_iterations.png")
   plt.close()
@@ -131,14 +132,14 @@ stream.close()
 
 nopt.draw_drawer_graph_pictures(connections_best,"initial")
 
-tracker=[]
+tracker_all=[]
+tracker_mins=[]
+tracker_mins_indx=[]
 if (use_hop_count):
   metric_name_file="average_hop_count"
   metric_name_label="average hop count"
-  metric_best=float(sum(hop_count_distribution))/len(hop_count_distribution) # average hop count
-  metric_initial=metric_best
-  print ("initial "+metric_name_label+" is "+str(metric_best))
-  tracker.append(metric_initial)
+  metric_initial=float(sum(hop_count_distribution))/len(hop_count_distribution) # average hop count
+  metric_best=metric_initial
 else:
   metric_name_file="minimum_bisection_count"
   metric_name_label="minimum bisection count"
@@ -147,10 +148,15 @@ else:
   for bcount in range(number_of_picks):
     bisection_count=nopt.fitness_function_bisection_count_drawers(number_of_drawers,connections)
     bisection_array.append(bisection_count)
-  metric_best=min(bisection_array)
   metric_initial=min(bisection_array)
+  metric_best=metric_initial
 
-for temperature_indx in range(number_of_iterations):
+print ("initial "+metric_name_label+" is "+str(metric_best))
+tracker_all.append(metric_initial)
+tracker_mins.append(metric_initial)
+tracker_mins_indx.append(0)
+  
+for temperature_indx in range(1,number_of_iterations+1):
   t_find_altered_graph_previous=time.clock()
   found_valid_mutation=False
   search_indx=0
@@ -159,7 +165,11 @@ for temperature_indx in range(number_of_iterations):
     #print("connections prior to mutation:")
     #print connections
     if (use_simulated_annealing):   # simulated annealing: the number of mutations depends on the temperature
-      for alteration_indx in range(random.randint(1,max_number_of_swaps*(1-(temperature_indx/number_of_iterations)))):
+      upper_limit=max([1,max_number_of_swaps*(1.0-(temperature_indx/number_of_iterations))])
+      #print('max swaps: '+str(max_swap))
+      number_of_swaps=random.randint(1,upper_limit)
+      #print('number of swaps: '+str(number_of_swaps))
+      for alteration_indx in range(number_of_swaps): # perform a random number of swaps
         connections_new=nopt.make_alteration_swap_ports_drawers(number_of_drawers,connections,random_network_search_limit)
     else: # only perform one swap. Useful for troubleshooting
       connections_new=nopt.make_alteration_swap_ports_drawers(number_of_drawers,connections,random_network_search_limit)
@@ -180,7 +190,7 @@ for temperature_indx in range(number_of_iterations):
   # here the while loop has terminated either due to finding a valid mutation or reaching valid_path_search_limit
   if (search_indx==valid_path_search_limit):
     print("reached valid_path_search_limit. Exiting")
-    done_searching(metric_initial,metric_best,connections_best,tracker,metric_name_file,metric_name_label,t_start)
+    done_searching(metric_initial,metric_best,connections_best,tracker_all,tracker_mins,tracker_mins_indx,metric_name_file,metric_name_label,t_start)
 
   t_find_altered_graph_new=time.clock()-t_find_altered_graph_previous
   #print("time to find altered network: "+str(t_find_altered_graph_new)+" seconds")
@@ -196,9 +206,11 @@ for temperature_indx in range(number_of_iterations):
       bisection_array.append(bisection_count)
     metric_new=min(bisection_array)
     this_change_is_an_improvement = (metric_new<metric_best)
-  tracker.append(metric_new)
+  tracker_all.append(metric_new)
   if (this_change_is_an_improvement):
     #print("improvement found")
+    tracker_mins.append(metric_new)
+    tracker_mins_indx.append(temperature_indx)
     print("new best "+metric_name_label+" is "+str(metric_new)+" and old was "+str(metric_best))
     print("Total elapsed time: "+str(time.clock()-t_start)+" seconds")
     metric_best=metric_new
@@ -207,4 +219,4 @@ for temperature_indx in range(number_of_iterations):
   t_metric_elapsed=time.clock()-t_metric_start
   #print("time to determine metric: "+str(t_metric_elapsed)+" seconds. Total elapsed time: "+str(time.clock()-t_start)+" seconds")
   
-done_searching(metric_initial,metric_best,connections_best,tracker,metric_name_file,metric_name_label,t_start)
+done_searching(metric_initial,metric_best,connections_best,tracker_all,tracker_mins,tracker_mins_indx,metric_name_file,metric_name_label,t_start)
