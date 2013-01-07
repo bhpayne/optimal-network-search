@@ -27,45 +27,13 @@
 
 import networkx as nx
 import lib_network_optimization as nopt # Ben's module for graph input/output
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import random
 import math
 import yaml
 import time
 
 
-def done_searching(metric_initial,metric_best,connections_best,tracker,metric_name_file,metric_name_label,t_start):
-  print("initial: "+str(metric_initial)+", final best: "+str(metric_best))
-  stream=file('network_connections_final.log','w')
-  yaml.dump({'connections':connections},stream)
-  stream.close()
-  nopt.draw_computer_and_router_graph_pictures(connections_best,"final")  
-  plt.xlabel('iteration')
-  plt.ylabel(metric_name_label)
-  plt.plot(range(len(tracker)),tracker)  
-  #plt.show()
-  plt.savefig("networkx_"+metric_name_file+"_versus_iterations.png")
-  plt.close()
-  print("Total elapsed time: "+str(time.clock()-t_start)+" seconds")
-
-def how_many_picks(confidence,number_of_computers,number_of_routers,max_picks):
-  #number of picks p = \frac{\log(1-c)}{\log(1-(1/U))}
-  #where U = M! \prod_{x=0}^{N/2}(N-x)
-  if ((number_of_computers%2)==0):
-    total_number = (math.pow(2,(number_of_computers/2)))*(math.pow(2,number_of_routers))
-  else:
-    total_number = (math.pow(2,((number_of_computers+1)/2)))*(math.pow(2,number_of_routers))
-  if (math.log(1.0-(1.0/(total_number+0.0)))==0):
-    print("warning: total number of permutations "+str(total_number)+" is too large for search (limited by float).")
-    print("Setting number of picks = "+str(max_picks))
-    # total_number is almost always too large for realistic networks to find bisection minimum with any confidence level
-    number_of_picks=max_picks
-  else:
-    number_of_picks=int(math.ceil(math.log(1.0-((confidence+0.0)/100.0))/math.log(1.0-(1.0/(total_number+0.0)))))
-  if (number_of_picks>max_picks):
-    number_of_picks=max_picks
-  print ("number of picks is "+str(number_of_picks))
-  return number_of_picks
 #************ MAIN BODY *********************
 
 t_start = time.clock()
@@ -90,6 +58,13 @@ number_of_ports_per_computer=input_data["number_of_ports_per_computer"]
 number_of_routers=input_data["number_of_routers"]
 number_of_ports_per_router=input_data["number_of_ports_per_router"]
 
+input_stream.close()
+
+nopt.sanity_checks(number_of_routers,number_of_computers,number_of_ports_per_computer,number_of_ports_per_router)
+
+t_read_input = time.clock() - t_start # CPU seconds elapsed 
+#print("time to read input: "+str(t_read_input)+" seconds")
+
 print("number of computers:          "+str(number_of_computers))
 print("number of ports per computer: "+str(number_of_ports_per_computer))
 print("number of routers:            "+str(number_of_routers))
@@ -103,14 +78,6 @@ if (use_simulated_annealing):
 else:
   print("NOT using simulated annealing")
   
-
-input_stream.close()
-
-nopt.sanity_checks(number_of_routers,number_of_computers,number_of_ports_per_computer,number_of_ports_per_router)
-
-t_read_input = time.clock() - t_start # CPU seconds elapsed 
-#print("time to read input: "+str(t_read_input)+" seconds")
-
 found_valid_initial_graph=False
 search_indx=0
 while ((not found_valid_initial_graph) and (search_indx<random_network_search_limit)):
@@ -143,24 +110,28 @@ stream.close()
 
 nopt.draw_computer_and_router_graph_pictures(connections_best,"initial")
 
-tracker=[]
+tracker_all=[]
+tracker_mins=[]
+tracker_mins_indx=[]
 if (use_hop_count):
   metric_name_file="average_hop_count"
   metric_name_label="average hop count"
   metric_best=float(sum(hop_count_distribution))/len(hop_count_distribution) # average hop count
   metric_initial=metric_best
-  print ("initial "+metric_name_label+" is "+str(metric_best))
-  tracker.append(metric_initial)
 else:
   metric_name_file="minimum_bisection_count"
   metric_name_label="minimum bisection count"
-  number_of_picks=how_many_picks(confidence_of_finding_minimum_bisection,number_of_computers,number_of_routers,max_picks)
+  number_of_picks=how_many_picks_computers_routers(confidence_of_finding_minimum_bisection,number_of_computers,number_of_routers,max_picks)
   bisection_array=[]
   for bcount in range(number_of_picks):
     bisection_count=nopt.fitness_function_bisection_count_computers_and_routers(number_of_computers,number_of_routers,connections)
     bisection_array.append(bisection_count)
   metric_best=min(bisection_array)
   metric_initial=min(bisection_array)
+print ("initial "+metric_name_label+" is "+str(metric_best))
+tracker_all.append(metric_initial)
+tracker_mins.append(metric_initial)
+tracker_mins_indx.append(0)
 
 temperature_indx=0
 while (temperature_indx<number_of_iterations):
@@ -187,7 +158,8 @@ while (temperature_indx<number_of_iterations):
       search_indx=search_indx+1
   if (search_indx==valid_path_search_limit):
     print("reached valid_path_search_limit. Exiting")
-    done_searching(metric_initial,metric_best,connections_best,tracker,metric_name_file,metric_name_label,t_start)
+    nopt.done_searching(metric_initial,metric_best,connections_best,tracker_all,tracker_mins,tracker_mins_indx,metric_name_file,metric_name_label,t_start)
+    nopt.draw_computer_and_router_graph_pictures(connections,"final")  
 
   t_find_altered_graph_new=time.clock()-t_find_altered_graph_previous
   #print("time to find altered network: "+str(t_find_altered_graph_new)+" seconds")
@@ -201,9 +173,11 @@ while (temperature_indx<number_of_iterations):
       bisection_count=nopt.fitness_function_bisection_count_computers_and_routers(number_of_computers,number_of_routers,connections)
       bisection_array.append(bisection_count)
     metric_new=min(bisection_array)
-  tracker.append(metric_new)
+  tracker_all.append(metric_new)
   if (metric_new<metric_best):
-    #print("improvement found")
+    #print("improvement found at temperature index "+str(temperature_indx))
+    tracker_mins.append(metric_new)
+    tracker_mins_indx.append(temperature_indx)
     print("new best "+metric_name_label+" is "+str(metric_new)+" and old was "+str(metric_best))
     print("Total elapsed time: "+str(time.clock()-t_start)+" seconds")
     metric_best=metric_new
@@ -213,4 +187,5 @@ while (temperature_indx<number_of_iterations):
   t_metric_elapsed=time.clock()-t_metric_start
   #print("time to determine metric: "+str(t_metric_elapsed)+" seconds. Total elapsed time: "+str(time.clock()-t_start)+" seconds")
   
-done_searching(metric_initial,metric_best,connections_best,tracker,metric_name_file,metric_name_label,t_start)
+nopt.done_searching(metric_initial,metric_best,connections_best,tracker_all,tracker_mins,tracker_mins_indx,metric_name_file,metric_name_label,t_start)
+nopt.draw_computer_and_router_graph_pictures(connections,"final")  

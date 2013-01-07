@@ -1,5 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import yaml
 import os
 import random # "random.shuffle" for reordering computers and ports, routers and ports
 from random import choice  # for "choice" in determining connections
@@ -154,7 +155,7 @@ def make_alteration_remove_router_router_edge(number_of_routers,number_of_comput
       else:
 	search_indx=search_indx+1
     if (search_indx==number_of_routers):
-      print('didn\'t find a router to disconnect after '+str(number_of_routers)+' tries')
+      print('MARRRE: didn\'t find a router to disconnect after '+str(number_of_routers)+' tries')
       return connections
 
     # at this point we have found routerA and it has more than 2 connections
@@ -168,7 +169,7 @@ def make_alteration_remove_router_router_edge(number_of_routers,number_of_comput
     # remove [A,B] from connections
     # check that this doesn't break the network: test paths between all computers
     try:
-      hop_count_distribution=nopt.fitness_function_find_all_compute_hop_lengths(number_of_computers,connections)
+      hop_count_distribution=fitness_function_find_all_compute_hop_lengths(number_of_computers,connections)
       valid_removal=True
       break
     except nx.NetworkXNoPath:
@@ -194,7 +195,7 @@ def make_alteration_add_drawer_drawer_edge(number_of_drawers,connections,number_
     else:
       search_indx=search_indx+1
   if (search_indx==number_of_drawers):
-    print('didn\'t find a drawer to connect after '+str(number_of_drawers)+' tries')
+    print('MAADDE: didn\'t find a drawer to connect after '+str(number_of_drawers)+' tries')
     return connections
   # at this point we have found drawerA and it has open ports
   found_second_drawer_with_empty_ports=False
@@ -207,7 +208,7 @@ def make_alteration_add_drawer_drawer_edge(number_of_drawers,connections,number_
     else:
       search_indx=search_indx+1
   if (search_indx==number_of_drawers):
-    print('didn\'t find a second drawer to connect after '+str(number_of_drawers)+' tries')
+    print('MAADDE: didn\'t find a second drawer to connect after '+str(number_of_drawers)+' tries')
     return connections
   #print('drawerA: '+str(drawerA)+' and drawerB: '+str(drawerB))
   connections.append([drawerA,drawerB])    # add connection between A,B
@@ -221,7 +222,7 @@ def make_alteration_add_router_router_edge(number_of_routers,connections,number_
   if (number_of_router_ports_in_use==number_of_routers*number_of_ports_per_router):
     return connections
   elif (number_of_router_ports_in_use>number_of_routers*number_of_ports_per_router):
-    print("there is something wrong since number of edges between routers cannot exceed number of routers*number of ports per router")
+    print("MAARRE: there is something wrong since number of edges between routers cannot exceed number of routers*number of ports per router")
     return connections
   
   found_router_with_empty_ports=False
@@ -234,8 +235,8 @@ def make_alteration_add_router_router_edge(number_of_routers,connections,number_
     else:
       search_indx=search_indx+1
   if (search_indx==number_of_routers):
-    print('didn\'t find a router to connect after '+str(number_of_routers)+' tries')
-    print('number of router ports in use: '+str(number_of_router_ports_in_use))
+    print('MAARRE: didn\'t find a router to connect after '+str(number_of_routers)+' tries')
+    print('MAARRE: number of router ports in use: '+str(number_of_router_ports_in_use))
     return connections
 
   # at this point we have found routerA and it has open ports
@@ -249,9 +250,9 @@ def make_alteration_add_router_router_edge(number_of_routers,connections,number_
     else:
       search_indx=search_indx+1
   if (search_indx==number_of_routers):
-    print('didn\'t find a second router to connect after '+str(number_of_routers)+' tries')
-    print connections
-    print('number of router ports in use: '+str(number_of_router_ports_in_use))
+    print('MAARRE: didn\'t find a second router to connect after '+str(number_of_routers)+' tries')
+    #print connections
+    print('MAARRE: number of router ports in use: '+str(number_of_router_ports_in_use))
     return connections
   #print('routerA: '+str(routerA)+' and routerB: '+str(routerB))
   connections.append([routerA,routerB])    # add connection between A,B
@@ -274,7 +275,7 @@ def make_alteration_swap_ports_drawers(number_of_drawers,connections,random_netw
       connections.append(edgeB)
       search_indx=search_indx+1
   if (search_indx==random_network_search_limit):
-    print("valid edge swap not found in "+str(random_network_search_limit)+" tries")
+    print("MASPD: valid edge swap not found in "+str(random_network_search_limit)+" tries")
   #print("edgeA before:")
   #print edgeA
   #print("edgeB before:")
@@ -312,7 +313,7 @@ def make_alteration_swap_ports_routers_and_computers(number_of_routers,number_of
   edgeA=connections.pop(random.randrange(len(connections))) # get a random edge from the connections array
   search_indx=0
   if ((edgeA[0]<0) and (edgeA[1]<0)):
-    print("ERROR: computer-computer connection found!")
+    print("MASPRAC: computer-computer connection found!")
     print edgeA
     #exit()
   elif ((edgeA[0]>0) and (edgeA[1]>0)): # if edgeA is router-router, then it doesn't matter whether edgeB is r-r, c-r, or r-c
@@ -341,7 +342,7 @@ def make_alteration_swap_ports_routers_and_computers(number_of_routers,number_of
 	  connections.append(edgeB)
 	  search_indx=search_indx+1
   if (search_indx==random_network_search_limit):
-    print("ERROR: valid edge pair not found during swap search")
+    print("MASPRAC: valid edge pair not found during swap search")
     return connections    
   #print("edgeA before:")
   #print edgeA
@@ -489,7 +490,7 @@ def draw_drawer_graph_pictures(connections,name):
   #nx.draw_graphviz(Gviz,prog='neato')
   #nx.write_dot(Gviz,'networkx_graphviz_'+name+'.dot')
   #os.system('neato -Tpng networkx_graphviz_'+name+'.dot > networkx_graphviz_'+name+'.png')
-  plt.close()
+  #plt.close()
 
 #******************************************************************************
 def draw_computer_and_router_graph_pictures(connections,name):
@@ -720,3 +721,54 @@ def generate_random_drawer_network(number_of_drawers,number_of_ports_per_drawer,
   print connections
   return connections
   
+def done_searching(metric_initial,metric_best,connections,tracker_all,tracker_mins,tracker_mins_indx,metric_name_file,metric_name_label,t_start):
+  print("initial: "+str(metric_initial)+", final best: "+str(metric_best))
+  stream=file('network_connections_final.log','w')
+  yaml.dump({'connections':connections},stream)
+  stream.close()
+  plt.xlabel('iteration')
+  plt.ylabel(metric_name_label)
+  plt.plot(range(len(tracker_all)),tracker_all,marker='o',markersize=4,linestyle='--')  
+  plt.plot(tracker_mins_indx,tracker_mins)  
+  #plt.show()
+  plt.savefig("networkx_"+metric_name_file+"_versus_iterations.png")
+  plt.close()
+
+def how_many_picks_computers_routers(confidence,number_of_computers,number_of_routers,max_picks):
+  #number of picks p = \frac{\log(1-c)}{\log(1-(1/U))}
+  #where U = M! \prod_{x=0}^{N/2}(N-x)
+  if ((number_of_computers%2)==0):
+    total_number = (math.pow(2,(number_of_computers/2)))*(math.pow(2,number_of_routers))
+  else:
+    total_number = (math.pow(2,((number_of_computers+1)/2)))*(math.pow(2,number_of_routers))
+  if (math.log(1.0-(1.0/(total_number+0.0)))==0):
+    print("warning: total number of permutations "+str(total_number)+" is too large for search (limited by float).")
+    print("Setting number of picks = "+str(max_picks))
+    # total_number is almost always too large for realistic networks to find bisection minimum with any confidence level
+    number_of_picks=max_picks
+  else:
+    number_of_picks=int(math.ceil(math.log(1.0-((confidence+0.0)/100.0))/math.log(1.0-(1.0/(total_number+0.0)))))
+  if (number_of_picks>max_picks):
+    number_of_picks=max_picks
+  print ("number of picks is "+str(number_of_picks))
+  return number_of_picks
+
+  
+def how_many_picks_drawers(confidence,number_of_drawers,max_picks):
+  #number of picks p = \frac{\log(1-c)}{\log(1-(1/U))}
+  #where U = M! \prod_{x=0}^{N/2}(N-x)
+  if ((number_of_drawers%2)==0):
+    total_number = math.pow(2,(number_of_drawers/2))
+  else:
+    total_number = math.pow(2,((number_of_drawers+1)/2))
+  if (math.log(1.0-(1.0/(total_number+0.0)))==0):
+    print("warning: total number of permutations "+str(total_number)+" is too large for search (limited by float).")
+    print("Setting number of picks = "+str(max_picks))
+    # total_number is almost always too large for realistic networks to find bisection minimum with any confidence level
+    number_of_picks=max_picks
+  else:
+    number_of_picks=int(math.ceil(math.log(1.0-((confidence+0.0)/100.0))/math.log(1.0-(1.0/(total_number+0.0)))))
+  if (number_of_picks>max_picks):
+    number_of_picks=max_picks
+  print ("number of picks is "+str(number_of_picks))
+  return number_of_picks
