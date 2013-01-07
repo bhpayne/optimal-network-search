@@ -139,7 +139,7 @@ def convert_connections_to_G(connections):
 
 #******************************************************************************
 def make_alteration_remove_router_router_edge(number_of_routers,number_of_computers,connections,number_of_ports_per_router,random_network_search_limit):
-  flattened_connections = list(itertools.chain(connections))
+  flattened_connections = list(itertools.chain(*connections))
 
   valid_removal=False
   slimit=0
@@ -266,10 +266,12 @@ def make_alteration_swap_ports_drawers(number_of_drawers,connections,random_netw
   while ((not found_valid_edge_pair) and (search_indx<random_network_search_limit)):
     edgeA=connections.pop(random.randrange(len(connections))) # get a random edge from the connections array
     edgeB=connections.pop(random.randrange(len(connections))) # get another random edge from the connections array
-    if (not ((edgeA[0]==edgeB[0]) or (edgeA[1]==edgeB[1]))):
+    if (not ((edgeA[0]==edgeB[0]) or (edgeA[1]==edgeB[1]))): # must avoid connected a drawer to itself
       found_valid_edge_pair=True
       break
     else:
+      connections.append(edgeA)
+      connections.append(edgeB)
       search_indx=search_indx+1
   if (search_indx==random_network_search_limit):
     print("valid edge swap not found in "+str(random_network_search_limit)+" tries")
@@ -285,6 +287,13 @@ def make_alteration_swap_ports_drawers(number_of_drawers,connections,random_netw
   edgeB_swapped.append(edgeB[1]) 
   connections.append(edgeA_swapped)
   connections.append(edgeB_swapped)
+
+  #conn_flat = list(itertools.chain(*connections)) # flattens list of lists into a list
+  #for drawer_indx in range(number_of_drawers):
+    #print conn_flat.count(drawer_indx)
+    #if (conn_flat.count(drawer_indx)>4):
+      #print('ERROR: drawer '+str(drawer_indx)+' has more than 4 connections')
+      #exit()
   #print("edgeA after:")
   #print edgeA_swapped
   #print("edgeB after:")

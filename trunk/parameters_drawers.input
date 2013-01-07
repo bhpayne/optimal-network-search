@@ -1,15 +1,15 @@
-number_of_iterations:        1000   # how many evolutions to make. Must be a positive integer
-max_number_of_swaps:           20   # how big is the step size which defines "local" neighborhood? Must be a positive integer 
+number_of_iterations:        100   # how many evolutions to make. Must be a positive integer
+max_number_of_swaps:           1   # how big is the step size which defines "local" neighborhood? Must be a positive integer 
 random_network_search_limit: 1000   # used for random graph generation. Must be a positive integer
 valid_path_search_limit:     1000   # Must be a positive integer
 search_mod_alert:              20   # how often to display that no path modification has been found. Must be a positive integer
 confidence:                    90   # percent confidence of having found minimum. If too many searches are needed to have this confidence, fall back to "max_picks"
 max_picks:                    100   # bisection search: how many bisections get measured?
-use_hop_count:              True   # True=use hop count metric; False=use bisection count metric
-use_simulated_annealing:     True   # if False, then always use the new connections (do brute force search)
+use_hop_count:               True   # True=use hop count metric; False=use bisection count metric
+use_simulated_annealing:     True   # if False, then it is the same as setting max_number_of_swaps=1
 
-number_of_drawers:             20
-number_of_ports_per_drawer:     4
+number_of_drawers:            100   # must be positive integer greater than 2
+number_of_ports_per_drawer:     3   # must be positive integer greater than 1
 
 specify_connections_input:  False
 connections:                   []

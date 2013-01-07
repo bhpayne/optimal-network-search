@@ -89,6 +89,11 @@ use_simulated_annealing=input_data["use_simulated_annealing"]
 number_of_drawers=input_data["number_of_drawers"]
 number_of_ports_per_drawer=input_data["number_of_ports_per_drawer"]
 
+input_stream.close()
+
+t_read_input = time.clock() - t_start # CPU seconds elapsed 
+#print("time to read input: "+str(t_read_input)+" seconds")
+
 print("number of drawers:            "+str(number_of_drawers))
 print("number of ports per drawer:   "+str(number_of_ports_per_drawer))
 if (use_hop_count):
@@ -100,24 +105,19 @@ if (use_simulated_annealing):
 else:
   print("NOT using simulated annealing")
   
-
-input_stream.close()
-
-t_read_input = time.clock() - t_start # CPU seconds elapsed 
-#print("time to read input: "+str(t_read_input)+" seconds")
-
 found_valid_initial_graph=False
 search_indx=0
 while ((not found_valid_initial_graph) and (search_indx<random_network_search_limit)):
 
   if (not specify_connections_input):
     connections = nopt.generate_random_drawer_network(number_of_drawers,number_of_ports_per_drawer,random_network_search_limit)
-  
+
+  # need to determine whether the graph is segmented. Test: can each node reach all other nodes?
   try:
     hop_count_distribution=nopt.fitness_function_find_all_drawer_hop_lengths(number_of_drawers,connections)
     found_valid_initial_graph=True
     break
-  except nx.NetworkXNoPath:
+  except KeyError: # the referenced key doesn't exist in the dictionary. This indicates there is no path between two nodes
     print("initial network is segmented. Fix the random network generation algorithm")
     found_valid_initial_graph=False
 
@@ -150,31 +150,36 @@ else:
   metric_best=min(bisection_array)
   metric_initial=min(bisection_array)
 
-temperature_indx=0
-while (temperature_indx<number_of_iterations):
+for temperature_indx in range(number_of_iterations):
   t_find_altered_graph_previous=time.clock()
   found_valid_mutation=False
   search_indx=0
   while ((not found_valid_mutation) and (search_indx<valid_path_search_limit)):
-    # simulated annealing: the number of mutations depends on the temperature
-    if (use_simulated_annealing):
+    #nopt.draw_drawer_graph_pictures(connections,"prior_to_mutation")
+    #print("connections prior to mutation:")
+    #print connections
+    if (use_simulated_annealing):   # simulated annealing: the number of mutations depends on the temperature
       for alteration_indx in range(random.randint(1,max_number_of_swaps*(1-(temperature_indx/number_of_iterations)))):
         connections_new=nopt.make_alteration_swap_ports_drawers(number_of_drawers,connections,random_network_search_limit)
-    else:
+    else: # only perform one swap. Useful for troubleshooting
       connections_new=nopt.make_alteration_swap_ports_drawers(number_of_drawers,connections,random_network_search_limit)
     try:
       hop_count_distribution_new=nopt.fitness_function_find_all_drawer_hop_lengths(number_of_drawers,connections_new)
       found_valid_mutation=True
       break
-    except LookupError:
-      #nopt.draw_drawer_graph_pictures(connections_new,"this failed")
-      #print("failed")
-      #exit()
+    except KeyError: # the referenced key doesn't exist in the dictionary. This indicates there is no path between two nodes
+      found_valid_mutation=False
+      nopt.draw_drawer_graph_pictures(connections_new,"this_failed")
+      print("mutation caused network segmentation")
+      print("connections after mutation:")
+      print connections
+      exit()
       #if ((search_indx%search_mod_alert)==0):
         #print('This alteration segements the network. loop index='+str(search_indx))
       search_indx=search_indx+1
+  # here the while loop has terminated either due to finding a valid mutation or reaching valid_path_search_limit
   if (search_indx==valid_path_search_limit):
-    #print("reached valid_path_search_limit. Exiting")
+    print("reached valid_path_search_limit. Exiting")
     done_searching(metric_initial,metric_best,connections_best,tracker,metric_name_file,metric_name_label,t_start)
 
   t_find_altered_graph_new=time.clock()-t_find_altered_graph_previous
@@ -183,21 +188,22 @@ while (temperature_indx<number_of_iterations):
   t_metric_start=time.clock()
   if (use_hop_count):
     metric_new=float(sum(hop_count_distribution_new))/len(hop_count_distribution_new)
+    this_change_is_an_improvement = (metric_new<metric_best)
   else: # bisection
     bisection_array=[]
     for bcount in range(number_of_picks):
       bisection_count=nopt.fitness_function_bisection_count_drawers(number_of_drawers,connections)
       bisection_array.append(bisection_count)
     metric_new=min(bisection_array)
+    this_change_is_an_improvement = (metric_new<metric_best)
   tracker.append(metric_new)
-  if (metric_new<metric_best):
+  if (this_change_is_an_improvement):
     #print("improvement found")
     print("new best "+metric_name_label+" is "+str(metric_new)+" and old was "+str(metric_best))
     print("Total elapsed time: "+str(time.clock()-t_start)+" seconds")
     metric_best=metric_new
     connections_best=connections_new
     connections=connections_new
-  temperature_indx=temperature_indx+1
   t_metric_elapsed=time.clock()-t_metric_start
   #print("time to determine metric: "+str(t_metric_elapsed)+" seconds. Total elapsed time: "+str(time.clock()-t_start)+" seconds")
   
