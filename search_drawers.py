@@ -34,40 +34,6 @@ import yaml
 import time
 
 
-def done_searching(metric_initial,metric_best,connections,tracker_all,tracker_mins,tracker_mins_indx,metric_name_file,metric_name_label,t_start):
-  print("initial: "+str(metric_initial)+", final best: "+str(metric_best))
-  stream=file('network_connections_final.log','w')
-  yaml.dump({'connections':connections},stream)
-  stream.close()
-  nopt.draw_drawer_graph_pictures(connections,"final")  
-  plt.xlabel('iteration')
-  plt.ylabel(metric_name_label)
-  plt.plot(range(len(tracker_all)),tracker_all)  
-  plt.plot(tracker_mins_indx,tracker_mins)  
-  #plt.show()
-  plt.savefig("networkx_"+metric_name_file+"_versus_iterations.png")
-  plt.close()
-  print("Total elapsed time: "+str(time.clock()-t_start)+" seconds")
-  exit()
-
-def how_many_picks(confidence,number_of_drawers,max_picks):
-  #number of picks p = \frac{\log(1-c)}{\log(1-(1/U))}
-  #where U = M! \prod_{x=0}^{N/2}(N-x)
-  if ((number_of_drawers%2)==0):
-    total_number = math.pow(2,(number_of_drawers/2))
-  else:
-    total_number = math.pow(2,((number_of_drawers+1)/2))
-  if (math.log(1.0-(1.0/(total_number+0.0)))==0):
-    print("warning: total number of permutations "+str(total_number)+" is too large for search (limited by float).")
-    print("Setting number of picks = "+str(max_picks))
-    # total_number is almost always too large for realistic networks to find bisection minimum with any confidence level
-    number_of_picks=max_picks
-  else:
-    number_of_picks=int(math.ceil(math.log(1.0-((confidence+0.0)/100.0))/math.log(1.0-(1.0/(total_number+0.0)))))
-  if (number_of_picks>max_picks):
-    number_of_picks=max_picks
-  print ("number of picks is "+str(number_of_picks))
-  return number_of_picks
 #************ MAIN BODY *********************
 
 t_start = time.clock()
@@ -126,6 +92,7 @@ t_found_initial_graph=time.clock()-t_read_input
 print("time to find initial network: "+str(t_found_initial_graph)+" seconds")
 # if you reach here, then the initial graph has been found to be valid
 connections_best=connections
+connections_prev=connections
 stream=file('network_connections_initial.log','w')
 yaml.dump({'connections':connections},stream)
 stream.close()
@@ -143,7 +110,7 @@ if (use_hop_count):
 else:
   metric_name_file="minimum_bisection_count"
   metric_name_label="minimum bisection count"
-  number_of_picks=how_many_picks(confidence_of_finding_minimum_bisection,number_of_drawers,max_picks)
+  number_of_picks=how_many_picks_drawers(confidence_of_finding_minimum_bisection,number_of_drawers,max_picks)
   bisection_array=[]
   for bcount in range(number_of_picks):
     bisection_count=nopt.fitness_function_bisection_count_drawers(number_of_drawers,connections)
@@ -190,8 +157,8 @@ for temperature_indx in range(1,number_of_iterations+1):
   # here the while loop has terminated either due to finding a valid mutation or reaching valid_path_search_limit
   if (search_indx==valid_path_search_limit):
     print("reached valid_path_search_limit. Exiting")
-    done_searching(metric_initial,metric_best,connections_best,tracker_all,tracker_mins,tracker_mins_indx,metric_name_file,metric_name_label,t_start)
-
+    nopt.done_searching(metric_initial,metric_best,connections_best,tracker_all,tracker_mins,tracker_mins_indx,metric_name_file,metric_name_label,t_start)
+    nopt.draw_drawer_graph_pictures(connections,"final")  
   t_find_altered_graph_new=time.clock()-t_find_altered_graph_previous
   #print("time to find altered network: "+str(t_find_altered_graph_new)+" seconds")
   
@@ -207,16 +174,22 @@ for temperature_indx in range(1,number_of_iterations+1):
     metric_new=min(bisection_array)
     this_change_is_an_improvement = (metric_new<metric_best)
   tracker_all.append(metric_new)
+  #print(temperature_indx)
   if (this_change_is_an_improvement):
-    #print("improvement found")
+    #print("improvement found at temperature index "+str(temperature_indx))
     tracker_mins.append(metric_new)
     tracker_mins_indx.append(temperature_indx)
-    print("new best "+metric_name_label+" is "+str(metric_new)+" and old was "+str(metric_best))
+    print("new best "+metric_name_label+" is "+str(metric_new)+" at temp index "+str(temperature_indx)+" and old was "+str(metric_best))
     print("Total elapsed time: "+str(time.clock()-t_start)+" seconds")
     metric_best=metric_new
     connections_best=connections_new
     connections=connections_new
+    connections_prev=connections_new
+  else:
+    connections=connections_prev
   t_metric_elapsed=time.clock()-t_metric_start
   #print("time to determine metric: "+str(t_metric_elapsed)+" seconds. Total elapsed time: "+str(time.clock()-t_start)+" seconds")
   
-done_searching(metric_initial,metric_best,connections_best,tracker_all,tracker_mins,tracker_mins_indx,metric_name_file,metric_name_label,t_start)
+nopt.done_searching(metric_initial,metric_best,connections_best,tracker_all,tracker_mins,tracker_mins_indx,metric_name_file,metric_name_label,t_start)
+nopt.draw_drawer_graph_pictures(connections,"final")  
+print("Total elapsed time: "+str(time.clock()-t_start)+" seconds")
