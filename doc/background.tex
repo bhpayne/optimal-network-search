@@ -642,15 +642,41 @@ Does recording the paths between compute nodes help?
 \subsubsection{number of bisections}
 How many times does the bisection need to be measured?
 
-To answer this, we need to know how many unique permutations there are of the network. Suppose there are $N$ computers and $M$ routers. Then the number of halves of computers is $N(N-1)(N-2)\cdots(N/2)$:
+To answer this, we need to know how many unique permutations there are of the network. Suppose there are $N$ computers and $M$ routers. The number of halves of computers is not dependent on the choice order, and the computers are distinct. If there were two computers to be split, then the partitions are
+% if order matters, then $N(N-1)(N-2)\cdots(N/2) = \prod_{x=0}^{N/2}(N-x)$:
 \begin{equation}
- \prod_{x=0}^{N/2}(N-x)
+{1|2} 
 \end{equation}
-Similarly, the number of (unequal) router partitions is $M!$. Thus the number of unique network partitions, $U$, is
+For four computers, then the partitions are
 \begin{equation}
- U = M! \prod_{x=0}^{N/2}(N-x)
+\begin{gathered}
+{12|34}\\
+{13|24}\\
+{14|23}
+\end{gathered}
 \end{equation}
-Note: no dependence on number of ports per router or number of ports per computer.
+Any permutation beyond that set is redundant, i.e., $\{23|14\}$. Continuing to $N=6$ the partition set is
+\begin{equation}
+\begin{gathered}
+{123|456}\\
+{124|356}\\
+{125|346}\\
+{126|345}\\
+{134|256}\\
+{135|246}\\
+{136|245}\\
+{145|236}\\
+{146|235}\\
+{156|234}
+\end{gathered}
+\end{equation}
+Observe that there are 4 ``12*,'' 3 ``13*'', 2 ``14*'', and 1 ``15*''. The total count is 4+3+2+1=10 for $N=6$. This pattern did not occur for $N=4$, but it does for $N=8$ and 10. We find that for $N>6$ the number of unique permutations is $\sum_{x=1}^{(N+2)/2}x$ (where $N$ is even).
+
+The number of (unequal) router partitions is $2^M$. Thus the number of unique network partitions, $U$, is
+\begin{equation}
+ U = 2^M \sum_{x=1}^{(N+2)/2}x
+\end{equation}
+where $N$ is even. Note that there is no dependence on number of ports per router or number of ports per computer.
 
 If we want to find the minimum bisection, then an (orderly) exhaustive search is necessary. Instead, do a random search (random swaps of edges) and have some confidence of having found the minimum.
 
