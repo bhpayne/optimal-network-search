@@ -1,0 +1,117 @@
+\documentclass[pdftex]{article}
+% \documentclass[prl,showpacs,amsmath,amssymb]{revtex4} % PRL
+
+% margins of 1 inch:
+\setlength{\topmargin}{-.5in}
+\setlength{\textheight}{9in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\textwidth}{6.5in}
+
+\usepackage[pdftex]{hyperref} % hyperlink equation and bibliographic citations
+\usepackage[dvips]{graphicx,color}
+\usepackage{amsmath} % advanced math
+\usepackage{verbatim} % multi-line comments
+\usepackage[numbers]{natbib} % bibilography
+\usepackage{mciteplus} % collapse multiple citations in bibilography
+
+% from http://www.flakery.org/search/show/569
+
+\newcommand{\infint}{\ensuremath{\int_{-\infty}^{\infty}}}
+
+\newcommand{\ie}{\textit{i.e.}\ }
+\newcommand{\eg}{\textit{e.g.}\ }
+
+\newcommand{\eqn}[1]{Eq.\ (\ref{#1})}
+
+\newcommand{\pfrac}[2]{\ensuremath{\frac{\partial #1}{\partial #2}}}
+
+\begin{document}
+
+\title{Network Topology Optimization}
+
+\author{Ben Payne$^{1}$\footnote{Electronic address: bpayne@lps.umd.edu}
+{\it $^{1}$Department of Fun, University Name \& Town, city, State Zip}}
+
+\date{\today}
+
+% \begin{abstract}
+% Model random networks
+% \end{abstract}
+
+%\maketitle % declares end of title page
+
+\tableofcontents
+
+%\newpage
+
+\section{Introduction}
+
+What is the best network topology for simultaneous all-to-all communication?
+
+Currently implemented topologies, i.e., Butterfly, are better for certain applications compared to other options, i.e., Mesh. However, no network design has been analytically shown to be optimal for any one task, much less a combination of objectives. In this study, a method for searching for an optimal topology, with respect to multiple goals, is carried out. An evolutionary search technique, simulated annealing, is used to determine network designs which are tailored to the needs of a specific application and set of user-defined goals. These objectives can include cost, time to solution, and reliability.
+
+\section{Method}
+
+In order to find network topologies specifically designed for narrow cases, two approaches are taken. In the first, compute nodes are distingished from router nodes on an undirected graph. Rather than considering network traffic and router algorithms, only graph-based metrics are used: the hop count distribution and minimum bisection count. Each of these two must be defined in the context of a graph with two distinct types of nodes -- compute nodes from which information is sent and received, and router nodes which only redirect information. 
+% From this study we show that random graphs, uniform lattices, and scale-free graphs converge to ?
+
+In the second part of the study, a more realistic approach is taken. Rather than randomly generating the network of compute and router nodes, it is assumed that compute nodes and first router share a common design. This assumption is based on normal manufacturing procedures of producing homogeneous components. 
+
+Since the time-to-solution is the most direct measure of quality for a network topology, a more detailed simulation is needed. The need for timing requires that traffic congestion be included, which necessitates routing algorithms be specified. A cycle-accurate network simulator, SST/macro, is used to carry out the bucket sort algorithm. 
+
+% describe simulated annealing technique
+% discuss valid mutations; preserve symmetry or introduce randomness? Valid network 
+% what other options are their for the evolutionary search?
+% why not brute force search?
+% why not analytical search?
+
+
+\section{Questions}
+
+\textit{Choice of fitness function: Does the minimum bisection count and average hop count yield the same solution as the average time-to-solution?}
+
+To measure this, we set up a highly asymmetric network composed of two connected routers. One router is connected to one computer, and the other router is connected to 7 other computers. 
+
+Average hop count ($\langle hc \rangle$) is simpler to measure (using Dijkstra's algorithm for single-source shortest path on each pair of compute nodes) compared to average time to solution ($\langle tts \rangle$). The Floyd-Warshall algorithm for all-pairs shortest path is not useful since we do not include routers as sources of traffic generation. The simplification of $\langle hc \rangle$ is due to not accounting for congestion. Congestion on a graph is a measure of how many shortest routes use the same edge.
+
+Minimum bisection was studied for use as a fitness function, but the cost of correct measurement is high. Bisection bandwidth for communication graphs is defined (Ref~\cite{1980_Thompson}, page 52) as half the compute nodes being separated.
+\begin{equation}
+ U = 2^M \sum_{x=1}^{(N+2)/2}x
+\end{equation}
+
+\begin{equation}
+ p = \frac{\log(1-c)}{\log(1-(1/U))}
+\end{equation}
+
+\ \\
+\textit{Choice of protocol: Does the use of MPI versus OpenSHMEM make a difference in the outcome?}
+
+If the information being transmitted is small, then the overhead associated with two-way communication (MPI) could be detrimental. 
+
+\ \\
+\textit{Choice of initial network topology: If the initial network is random/lattice/scale-free/Butterfly/Clos, does it always converge towards the same pattern?}
+
+\section{Results}
+
+\section{Conclusion}
+
+The objective of this research is to help network designers make informed decisions on optimization for specific tasks. 
+
+Multi-objective optimization takes the form\\
+fitness function = $a\cdot$(cost)+$b\cdot$(time to solution)+$c\cdot$(reliability).
+
+In the work presented the network cost can be calculated from component prices, and time to solution was the explicit goal. We envision the capability to include reliability based on practical feedback from existing networks: how often does a router fail? How often does a cable fail? What are the failure modes?
+
+\section{Future work}
+
+Although routing algorithms were not part of this study, they are integral to the performance of the topology. We plan to investigate dynamic routing algorithms and the use of out-of-band information. 
+
+\begin{thebibliography}{99}
+
+\bibitem{1980_Thompson}
+C.~Thompson \textit{A complexity theory for VLSI}. PhD dissertation, (1980)
+
+\end{thebibliography}
+
+
+\end{document}
