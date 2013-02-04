@@ -121,7 +121,7 @@ if (use_hop_count):
 else:
   metric_name_file="minimum_bisection_count"
   metric_name_label="minimum bisection count"
-  number_of_picks=how_many_picks_computers_routers(confidence_of_finding_minimum_bisection,number_of_computers,number_of_routers,max_picks)
+  number_of_picks=nopt.how_many_picks_computers_routers(confidence_of_finding_minimum_bisection,number_of_computers,number_of_routers,max_picks)
   bisection_array=[]
   for bcount in range(number_of_picks):
     bisection_count=nopt.fitness_function_bisection_count_computers_and_routers(number_of_computers,number_of_routers,connections)
