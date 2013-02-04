@@ -1,7 +1,9 @@
 import networkx as nx
+import math
 import matplotlib.pyplot as plt
-import yaml
-import os
+import yaml # YAML Ain't Markup Language
+import os # calls to the host Operating System
+import re # regular expressions
 import random # "random.shuffle" for reordering computers and ports, routers and ports
 from random import choice  # for "choice" in determining connections
 import pickle # serialize data output
@@ -88,7 +90,7 @@ def fitness_function_bisection_count_computers_and_routers(number_of_computers,n
     if (((edge[0] in left_partition) and (edge[1] in right_partition)) or ((edge[0] in right_partition) and (edge[1] in left_partition))):
       #print edge
       bisection_count=bisection_count+1
-  return bisection_count
+  return bisection_count,left_partition,right_partition
   #print ("bisection count="+str(bisection_count))
   
 #******************************************************************************
@@ -477,6 +479,42 @@ def readGraphFromFile():
   number_of_computers=pickle.load(pkl_file)
   connections=pickle.load(pkl_file)
   pkl_file.close()
+  return number_of_routers,number_of_computers,connections
+
+#******************************************************************************
+def translateTestNetworkFromFileToGraphFile():
+  connections=[]
+  input_network_file=open('test_network.input','r') # read
+  while 1:
+    line=input_network_file.readline()
+    if not line:
+      break
+    pair=line.split(" ")
+    separated_lhs = re.split(r'([0-9]+)',pair[0])
+    separated_rhs = re.split(r'([0-9]+)',pair[1].rstrip())
+    if "computer" in pair[0].lower():
+      lhs = (int(separated_lhs[1])+1)*-1
+    elif "router" in pair[0].lower():
+      lhs = (int(separated_lhs[1])+1)
+    else:
+      print "ERROR: LHS node name must be either computer or router"
+      exit()
+    if "computer" in pair[1].lower():
+      rhs = (int(separated_rhs[1])+1)*-1
+    elif "router" in pair[1].lower():
+      rhs = (int(separated_rhs[1])+1)
+    else:
+      print "ERROR: RHS node name must be either computer or router"
+      exit()
+    this_pair=[]
+    this_pair.append(lhs)
+    this_pair.append(rhs)
+    connections.append(this_pair)
+
+  flattened_connections = list(itertools.chain(*connections))
+  number_of_routers=len([x for x in list(set(flattened_connections)) if x > 0])
+  number_of_computers=len([x for x in list(set(flattened_connections)) if x < 0])
+
   return number_of_routers,number_of_computers,connections
 
   
