@@ -1,0 +1,9 @@
+computer0 router0
+router0 router1
+router1 computer1
+router1 computer2
+router1 computer3
+router1 computer4
+router1 computer5
+router1 computer6
+router1 computer7
