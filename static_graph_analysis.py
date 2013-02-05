@@ -1,17 +1,24 @@
-#import networkx as nx
-#import matplotlib.pyplot as plt
-#import random
 import lib_network_optimization as nopt
-#import itertools
 
 #************ MAIN BODY *********************
 
 # for bisection halting:
 confidence_of_finding_minimum_bisection=1
 max_picks=1000
+#filename="test_network_ALLTOALL_8routers_8computers.input"
+#filename="test_network_ONE_ROUTER_1router_8computers.input"
+#filename="test_network_ASYMMETRIC_PAIR_2routers_8_computers.input"
+#filename="test_network_ALLTOALL_8routers_8computers.input"
+#filename="test_network_SYMMETRIC_PAIR_2routers_8computers.input"
+#filename="test_network_SYMMETRIC_SQUARE_4routers_8computers.input"
+filename="test_network_SYMMETRIC_CENTIPEDE_4routers_8computers.input"
 
-number_of_routers,number_of_computers,connections = nopt.translateTestNetworkFromFileToGraphFile()
-
+try: 
+  number_of_routers,number_of_computers,connections = nopt.translateTestNetworkFromFileToGraph(filename)
+except IndexError:
+  print("ERROR: probably extra lines in "+filename)
+  exit()
+  
 nopt.draw_computer_and_router_graph_pictures(connections,"specified")
 
 try:

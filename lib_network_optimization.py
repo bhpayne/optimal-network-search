@@ -482,11 +482,12 @@ def readGraphFromFile():
   return number_of_routers,number_of_computers,connections
 
 #******************************************************************************
-def translateTestNetworkFromFileToGraphFile():
+def translateTestNetworkFromFileToGraph(filename):
   connections=[]
-  input_network_file=open('test_network.input','r') # read
+  input_network_file=open(filename,'r') # read
   while 1:
     line=input_network_file.readline()
+    print line
     if not line:
       break
     pair=line.split(" ")
