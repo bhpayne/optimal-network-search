@@ -8,8 +8,9 @@ max_picks=1000
 #filename="test_network_ALLTOALL_8routers_8computers.input"
 #filename="test_network_ONE_ROUTER_1router_8computers.input"
 #filename="test_network_ASYMMETRIC_PAIR_2routers_8_computers.input"
-filename="test_network_ALLTOALL_8routers_8computers.input"
+#filename="test_network_ALLTOALL_8routers_8computers.input"
 #filename="test_network_SYMMETRIC_PAIR_2routers_8computers.input"
+filename="test_network_SYMMETRIC_SQUARE_CONNECTED_4routers_8computers.input"
 #filename="test_network_SYMMETRIC_SQUARE_4routers_8computers.input"
 #filename="test_network_SYMMETRIC_CENTIPEDE_4routers_8computers.input"
 
