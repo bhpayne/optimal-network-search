@@ -20,12 +20,72 @@ import itertools           # for generating pairs of computers
 def fitness_function_bisection_count_drawers(number_of_drawers,connections):
   return bisection_count
 
+def fitness_function_bisection_count_computers_and_routers(number_of_computers,number_of_routers,connections,number_of_attempts,weight_error):
+  all_computers=range(1,number_of_computers+1)
+  all_computers=[comp*-1 for comp in all_computers]
+  all_routers=range(1,number_of_routers+1)
+  # router-only version of connections:
+  router_connections=[]
+  for edge in connections:
+    if ((edge[0]>0) and (edge[1]>0)):
+      router_connections.append(edge)
+  if ((number_of_routers%2)==0):
+    half_the_routers=number_of_routers/2
+  else:
+    half_the_routers=(number_of_routers+1)/2
+  # first, assign a weight to each router
+  routers_with_weights=[]
+  for this_router in all_routers:
+    router_and_weight=[]
+    router_and_weight.append(this_router)
+    #determine how many computers this router has attached to it
+    number_of_computers_attached_to_this_router=0
+    for edge in connections:
+      #print ("edge: "+str(edge))
+      #print ("this router: "+str(this_router))
+      #print ("first element of edge:"+str(edge[0])+" and second:"+str(edge[1]))
+      if (((edge[0]==this_router) and (edge[1] < 0)) or ((edge[1]==this_router) and (edge[0] < 0))):
+	number_of_computers_attached_to_this_router=number_of_computers_attached_to_this_router+1
+	#print ("num comp: "+str(number_of_computers_attached_to_this_router))
+    this_weight=float(number_of_computers_attached_to_this_router)/float(number_of_computers)
+    router_and_weight.append(this_weight)
+    routers_with_weights.append(router_and_weight)
+  #print routers_with_weights
+  # second, randomly partition the routers until the weight is roughly evenly distributed
+  attempt_number=0
+  while 1:
+    random.shuffle(routers_with_weights)
+    left_partition=routers_with_weights[0:half_the_routers]
+    right_partition=routers_with_weights[half_the_routers:number_of_routers]
+    #print left_partition, right_partition
+    attempt_number=attempt_number+1
+    som = 0
+    for x in range(len(left_partition)):
+      som=som+left_partition[x][1]
+    if (abs(som-0.5)<weight_error):
+      found_bisection=True
+      break
+    if (attempt_number>=number_of_attempts):
+      found_bisection=False
+      print("ERROR: unable to find valid bisection for weights")
+      print left_partition, right_partition
+      break
+  if found_bisection:
+    bisection_count=0
+    flattened_left_partition = list(itertools.chain(*left_partition)) # flattens list of lists into a list
+    flattened_right_partition= list(itertools.chain(*right_partition))
+    for edge in router_connections:
+      if (((edge[0] in flattened_left_partition) and (edge[1] in flattened_right_partition)) or ((edge[0] in flattened_right_partition) and (edge[1] in flattened_left_partition))):
+	bisection_count=bisection_count+1
+      
+  return bisection_count,left_partition,right_partition
+  
 #******************************************************************************
 # https://en.wikipedia.org/wiki/Cut_(graph_theory)
 # https://en.wikipedia.org/wiki/Connectivity_(graph_theory)
 # https://en.wikipedia.org/wiki/Minimum_cut
 # https://en.wikipedia.org/wiki/Graph_partitioning_problem
-def fitness_function_bisection_count_computers_and_routers(number_of_computers,number_of_routers,connections):
+def fitness_function_bisection_count_computers_and_routers_NO_WEIGHTS(number_of_computers,number_of_routers,connections):
   all_computers=range(1,number_of_computers+1)
   all_computers=[comp*-1 for comp in all_computers]
   all_routers=range(1,number_of_routers+1)
@@ -40,7 +100,7 @@ def fitness_function_bisection_count_computers_and_routers(number_of_computers,n
   #print left_partition_computers
   #print right_partition_computers
 
-  # 20121220: I don't think the algorithm below has any strong advantages yet, so I'm going to due a brute-force search
+  # 20121220: I don't think the algorithm below has any strong advantages yet, so I'm going to do a brute-force search
   #*****************
   ## now that we know which computers we care about, grab the routers pluged into those computers
   ## routers with computers only in the "left" set are assigned to the new "left (routers-only)" set; similarly routers with computers only in the "right" set are assigned to "right (routers-only)"
@@ -487,7 +547,7 @@ def translateTestNetworkFromFileToGraph(filename):
   input_network_file=open(filename,'r') # read
   while 1:
     line=input_network_file.readline()
-    print line
+    #print line
     if not line:
       break
     pair=line.split(" ")
