@@ -16,7 +16,16 @@ import itertools           # for generating pairs of computers
 #G.add_edges_from([(1,2),(2,3),(1,3)])
 
 #******************************************************************************
+def fitness_function_average_time_to_solution(connections):
+  # convert connections to format readable by SST
+  translateConnectionsToTestNetwork(connections,"test_network.log")
+  # run SST. We assume SST has already been set up to work correctly
+  os.system('./runsst')
+  # get timing
+  timeToSolution=0
+  return timeToSolution
 
+#******************************************************************************
 def fitness_function_bisection_count_drawers(number_of_drawers,connections):
   return bisection_count
 
@@ -261,7 +270,7 @@ def make_alteration_remove_router_router_edge(number_of_routers,number_of_comput
       valid_removal=False
       slimit=slimit+1
   return connections
-
+  
 #******************************************************************************
 def make_alteration_add_drawer_drawer_edge(number_of_drawers,connections,number_of_ports_per_drawer,random_network_search_limit):
   flattened_connections = list(itertools.chain(*connections))
@@ -563,6 +572,28 @@ def readGraphFromFile():
   pkl_file.close()
   return number_of_routers,number_of_computers,connections
 
+
+#******************************************************************************
+def translateConnectionsToTestNetwork(connections,filename):
+  output_network_file=open(filename,'w') # write
+  for pair_indx in range(len(connections))
+    if (connections[pair_indx][0]<0):
+      left_node="computer"+str(connections[pair_indx][0])
+    elif (connections[pair_indx][0]>0):
+      left_node="router"+str(connections[pair_indx][0])
+    else:
+      print("ERROR in connections")
+      exit
+    if (connections[pair_indx][1]<0):
+      right_node="computer"+str(connections[pair_indx][1])
+    elif (connections[pair_indx][1]>0):
+      right_node="router"+str(connections[pair_indx][1])
+    else:
+      print("ERROR in connections")
+      exit
+    output_network_file.write( left_node+" "+right_node )
+  output_network_file.close()
+  
 #******************************************************************************
 def translateTestNetworkFromFileToGraph(filename):
   connections=[]

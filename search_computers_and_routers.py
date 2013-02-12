@@ -41,6 +41,7 @@ t_start = time.clock()
 input_stream=file('parameters_computers_and_routers.input','r')
 input_data=yaml.load(input_stream)
 
+# real-valued scalar
 confidence_of_finding_minimum_bisection=input_data["confidence"]
 max_picks=input_data["max_picks"]
 search_mod_alert=input_data["search_mod_alert"]
@@ -48,23 +49,29 @@ number_of_iterations=input_data["number_of_iterations"]
 random_network_search_limit=input_data["random_network_search_limit"]
 valid_path_search_limit=input_data["valid_path_search_limit"]
 max_number_of_swaps=input_data["max_number_of_swaps"]
-specify_connections_input=input_data["specify_connections_input"]
 temperature_value=input_data["temperature_value"]
 cooling_rate=input_data["cooling_rate"]
-connections=input_data["connections"]
+number_of_searches=input_data["number_of_searches"]
+
+# booleans:
+specify_connections_input=input_data["specify_connections_input"]
 use_hop_count=input_data["use_hop_count"]
+use_bisection_count=input_data["use_bisection_count"]
+use_timeToSolution=input_data["use_timeToSolution"]
 use_simulated_annealing=input_data["use_simulated_annealing"]
+
+# array
+connections=input_data["connections"] # may be needed if specify_connections_input==True
 
 number_of_computers=input_data["number_of_computers"]
 number_of_ports_per_computer=input_data["number_of_ports_per_computer"]
 number_of_routers=input_data["number_of_routers"]
 number_of_ports_per_router=input_data["number_of_ports_per_router"]
 
-input_stream.close()
+input_stream.close() # done reading parameters input
 
 nopt.sanity_checks(number_of_routers,number_of_computers,number_of_ports_per_computer,number_of_ports_per_router)
 
-number_of_searches=1000
 all_search_results=[]
 for this_search_indx in range(number_of_searches):
   print this_search_indx
@@ -79,8 +86,10 @@ for this_search_indx in range(number_of_searches):
     print("number of ports per router:   "+str(number_of_ports_per_router))
   if (use_hop_count):
     print("metric: hop count")
-  else:
+  if (use_bisection_count):
     print("metric: bisection count")
+  if (use_timeToSolution):
+    print("metric: time to solution")
   if (use_simulated_annealing):
     print("using simulated annealing")
   else:
@@ -126,12 +135,17 @@ for this_search_indx in range(number_of_searches):
   tracker_all=[]
   tracker_mins=[]
   tracker_mins_indx=[]
-  if (use_hop_count):
+  if (use_hop_count and not (use_bisection_count or use_timeToSolution)):
     metric_name_file="average_hop_count"
     metric_name_label="average hop count"
     metric_best=float(sum(hop_count_distribution))/len(hop_count_distribution) # average hop count
     metric_initial=metric_best
-  else:
+  elif (use_timeToSolution and not (use_hop_count or use_bisection_count)):
+    metric_name_file="average_time_to_solution"
+    metric_name_label="average time to solution"
+    metric_best=nopt.fitness_function_average_time_to_solution(connections)
+    metric_initial=metric_best    
+  elif (use_bisection_count and not (use_hop_count or use_timeToSolution)):
     metric_name_file="minimum_bisection_count"
     metric_name_label="minimum bisection count"
     number_of_picks=nopt.how_many_picks_computers_routers(confidence_of_finding_minimum_bisection,number_of_computers,number_of_routers,max_picks)
@@ -179,9 +193,11 @@ for this_search_indx in range(number_of_searches):
     #print("time to find altered network: "+str(t_find_altered_graph_new)+" seconds")
     
     t_metric_start=time.clock()
-    if (use_hop_count):
+    if (use_hop_count and not (use_bisection_count or use_timeToSolution)):
       metric_new=float(sum(hop_count_distribution_new))/len(hop_count_distribution_new)
-    else: # bisection
+    elif (use_timeToSolution and not (use_hop_count or use_bisection_count)):
+      metric_new=nopt.fitness_function_average_time_to_solution(connections)
+    elif (use_bisection_count and not (use_hop_count or use_timeToSolution)):
       bisection_array=[]
       for bcount in range(number_of_picks):
 	bisection_count=nopt.fitness_function_bisection_count_computers_and_routers(number_of_computers,number_of_routers,connections)
@@ -221,7 +237,7 @@ for this_search_indx in range(number_of_searches):
 	connections_best=connections_new
 	connections=connections_new
 	
-    temperature_value=cooling_rate*temperature_value
+    temperature_value=cooling_rate*temperature_value # geometric cooling schedule
     temperature_indx=temperature_indx+1
     t_metric_elapsed=time.clock()-t_metric_start
     #print("time to determine metric: "+str(t_metric_elapsed)+" seconds. Total elapsed time: "+str(time.clock()-t_start)+" seconds")
