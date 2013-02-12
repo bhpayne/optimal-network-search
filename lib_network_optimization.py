@@ -201,6 +201,28 @@ def convert_connections_to_G(connections):
   return G
 
 #******************************************************************************
+def make_alteration_add_or_remove_router(number_of_routers,number_of_computers,connections,random_network_search_limit):
+  flattened_connections = list(itertools.chain(*connections))
+  # find router which has only 2 connections, both of which are to other routers
+  for this_router in range(1,number_of_routers+1):
+    if (flattened_connections.count(this_router) == 2): # this_router has only 2 connections
+      this_router_is_connected_to=[]
+      this_router_is_at=[]
+      for pair_indx in range(len(connections)):
+	if (this_router==connections[pair_indx][0]):
+	  this_router_is_connected_to.append(connections[pair_indx][1])
+	  this_router_is_at.append(pair_indx)
+	elif (this_router==connections[pair_indx][1]):
+	  this_router_is_connected_to.append(connections[pair_indx][0])
+	  this_router_is_at.append(pair_indx)
+      print this_router_is_connected_to
+      # here we have "this_router" and its two connections, this_router_is_connected_to
+      if ((this_router_is_connected_to[0]>0) and (this_router_is_connected_to[1]>0) and random.random()>0.5):
+	connections.pop(this_router_is_at[0])
+	connections.pop(this_router_is_at[1])
+  return connections
+      
+#******************************************************************************
 def make_alteration_remove_router_router_edge(number_of_routers,number_of_computers,connections,number_of_ports_per_router,random_network_search_limit):
   flattened_connections = list(itertools.chain(*connections))
 
@@ -711,7 +733,13 @@ def generate_2D_mesh_network(number_of_rows,number_of_columns):
   for indx in range(1,G.number_of_nodes()+1):
     G.add_edge(indx,indx*-1)
   #return G
-  connections=G.edges()
+  connections_temp=G.edges() # this yields connections_temp=[(1,2), (1,3), ...]
+  connections=[]
+  for pair in range(len(connections_temp)):
+    this_pair=[]
+    this_pair.append(connections_temp[pair][0])
+    this_pair.append(connections_temp[pair][1])
+    connections.append(this_pair) # this yields connections=[[1,1], [1,3], ...]
   return connections
   
 #******************************************************************************
@@ -726,7 +754,13 @@ def generate_ND_toroidal_or_mesh_network(dimensions,toroidal_true_mesh_false):
   for indx in range(1,G.number_of_nodes()+1):
     G.add_edge(indx,indx*-1)
   #return G
-  connections=G.edges()
+  connections_temp=G.edges() # this yields connections_temp=[(1,2), (1,3), ...]
+  connections=[]
+  for pair in range(len(connections_temp)):
+    this_pair=[]
+    this_pair.append(connections_temp[pair][0])
+    this_pair.append(connections_temp[pair][1])
+    connections.append(this_pair) # this yields connections=[[1,1], [1,3], ...]
   return connections
 
 #******************************************************************************

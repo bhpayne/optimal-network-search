@@ -10,10 +10,10 @@ max_picks=1000
 #filename="test_network_ASYMMETRIC_PAIR_2routers_8_computers.input"
 #filename="test_network_ALLTOALL_8routers_8computers.input"
 #filename="test_network_SYMMETRIC_PAIR_2routers_8computers.input"
-filename="test_network_SYMMETRIC_SQUARE_CONNECTED_4routers_8computers.input"
+#filename="test_network_SYMMETRIC_SQUARE_CONNECTED_4routers_8computers.input"
 #filename="test_network_SYMMETRIC_SQUARE_4routers_8computers.input"
-#filename="test_network_SYMMETRIC_CENTIPEDE_4routers_8computers.input"
-
+filename="test_network_SYMMETRIC_CENTIPEDE_4routers_8computers.input"
+print filename
 try: 
   number_of_routers,number_of_computers,connections = nopt.translateTestNetworkFromFileToGraph(filename)
 except IndexError:
