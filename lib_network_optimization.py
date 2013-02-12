@@ -1,7 +1,7 @@
-import networkx as nx
+import networkx as nx # http://networkx.lanl.gov/download/networkx/
 import math
-import matplotlib.pyplot as plt
-import yaml # YAML Ain't Markup Language
+import matplotlib.pyplot as plt # http://matplotlib.org/users/installing.html
+import yaml # YAML Ain't Markup Language # http://pyyaml.org/wiki/PyYAML
 import os # calls to the host Operating System
 import re # regular expressions
 import random # "random.shuffle" for reordering computers and ports, routers and ports
@@ -20,9 +20,32 @@ def fitness_function_average_time_to_solution(connections):
   # convert connections to format readable by SST
   translateConnectionsToTestNetwork(connections,"test_network.log")
   # run SST. We assume SST has already been set up to work correctly
-  os.system('./runsst')
+  os.system('rm /home/bpayne/bpayne/test_network.log')
+  os.system('rm /home/bpayne/bpayne/out.log')
+  os.system('mv test_network.log /home/bpayne/bpayne/')
+  os.system('/home/bpayne/bpayne/runsstmac -f /home/bpayne/bpayne/parameters.ini > /home/bpayne/bpayne/out.log')
   # get timing
-  timeToSolution=0
+  fil=open('/home/bpayne/bpayne/out.log', 'r') # read from file
+  while 1:
+    line=fil.readline()
+    #print line
+    if not line:
+      break
+    print line
+    if "Time to sort using" in line: # this line contains the time
+      nums = []
+      for this in line.split():
+        try:
+          nums.append(float(this))
+          print nums
+        except ValueError:
+          pass        
+  fil.close()
+  if isinstance(nums[1],float):
+    timeToSolution=nums[1]
+  else:
+    print("ERROR parsing file from SST run")
+    exit()
   return timeToSolution
 
 #******************************************************************************
@@ -576,22 +599,22 @@ def readGraphFromFile():
 #******************************************************************************
 def translateConnectionsToTestNetwork(connections,filename):
   output_network_file=open(filename,'w') # write
-  for pair_indx in range(len(connections))
+  for pair_indx in range(len(connections)):
     if (connections[pair_indx][0]<0):
-      left_node="computer"+str(connections[pair_indx][0])
+      left_node="computer"+str(-1*connections[pair_indx][0]-1)
     elif (connections[pair_indx][0]>0):
-      left_node="router"+str(connections[pair_indx][0])
+      left_node="router"+str(connections[pair_indx][0]-1)
     else:
       print("ERROR in connections")
       exit
     if (connections[pair_indx][1]<0):
-      right_node="computer"+str(connections[pair_indx][1])
+      right_node="computer"+str(-1*connections[pair_indx][1]-1)
     elif (connections[pair_indx][1]>0):
-      right_node="router"+str(connections[pair_indx][1])
+      right_node="router"+str(connections[pair_indx][1]-1)
     else:
       print("ERROR in connections")
       exit
-    output_network_file.write( left_node+" "+right_node )
+    output_network_file.write( left_node+" "+right_node+"\n" )
   output_network_file.close()
   
 #******************************************************************************
@@ -664,12 +687,12 @@ def draw_computer_and_router_graph_pictures(connections,name):
   #plt.savefig("networkx_spectral_"+name+".png")
   plt.close()
   Gviz=G
-  nx.draw_graphviz(Gviz,prog='neato')
+#  nx.draw_graphviz(Gviz,prog='neato')
   # the following doesn't work because it gets over-written by write_dot()
   #stream=file('networkx_graphviz_'+name+'.dot','w')
   #stream.write('# neato -Tpng networkx_graphviz_'+name+'.dot > networkx_graphviz_'+name+'.png')
   #stream.close()
-  nx.write_dot(Gviz,'networkx_graphviz_'+name+'.dot')
+#  nx.write_dot(Gviz,'networkx_graphviz_'+name+'.dot')
   os.system('neato -Tpng networkx_graphviz_'+name+'.dot > networkx_graphviz_'+name+'.png')
   plt.close()
   

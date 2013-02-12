@@ -102,8 +102,8 @@ for this_search_indx in range(number_of_searches):
     if (not specify_connections_input):
       connections = nopt.generate_random_computer_and_router_network(number_of_computers,number_of_ports_per_computer,number_of_routers,number_of_ports_per_router,random_network_search_limit)
     else:    #alternatives to random graph
-      number_of_rows=3
-      number_of_columns=3
+      number_of_rows=4
+      number_of_columns=4
       connections = nopt.generate_2D_mesh_network(number_of_rows,number_of_columns)
       number_of_computers=number_of_rows*number_of_columns
       number_of_routers=number_of_rows*number_of_columns
@@ -169,7 +169,7 @@ for this_search_indx in range(number_of_searches):
       #if (use_simulated_annealing):
 	#for alteration_indx in range(random.randint(1,max_number_of_swaps*(1-(temperature_indx/number_of_iterations)))):
       connections_new=nopt.make_alteration_swap_ports_routers_and_computers(number_of_routers,number_of_computers,connections,random_network_search_limit)
-      connections_new=nopt.make_alteration_add_or_remove_router(number_of_routers,number_of_computers,connections,random_network_search_limit)
+      #connections_new=nopt.make_alteration_add_or_remove_router(number_of_routers,number_of_computers,connections,random_network_search_limit)
 	#connections_new=nopt.make_alteration_add_router_router_edge(number_of_routers,connections_new,number_of_ports_per_router,random_network_search_limit)
       #else:
 	#connections_new=nopt.make_alteration_swap_ports_routers_and_computers(number_of_routers,number_of_computers,connections,random_network_search_limit)

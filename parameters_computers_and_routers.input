@@ -1,4 +1,4 @@
-number_of_iterations:        1000   # how many evolutions to make. Must be a positive integer
+number_of_iterations:        10   # how many evolutions to make. Must be a positive integer
 max_number_of_swaps:           20   # how big is the step size which defines "local" neighborhood? Must be a positive integer 
 random_network_search_limit: 1000   # used for random graph generation. Must be a positive integer
 valid_path_search_limit:     1000   # Must be a positive integer
@@ -7,10 +7,10 @@ confidence:                    90   # percent confidence of having found minimum
 max_picks:                   1000   # bisection search: how many bisections get measured?
 temperature_value:             10   # initial temperature
 cooling_rate:                 0.9   # geometric factor for temperature decrease
-number_of_searches:          1000   # number of times to perform the simulated annealing search
-use_hop_count:               True   # use average hop count        as fitness function metric
+number_of_searches:          1   # number of times to perform the simulated annealing search
+use_hop_count:              False   # use average hop count        as fitness function metric
 use_bisection_count:        False   # use bisection   count        as fitness function metric
-use_timeToSolution:         False   # use average time to solution as fitness function metric
+use_timeToSolution:         True   # use average time to solution as fitness function metric
 use_simulated_annealing:     True   # if False, then always use the new connections (do brute force search)
 
 number_of_routers:              5
