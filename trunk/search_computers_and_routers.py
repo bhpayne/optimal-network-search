@@ -45,11 +45,12 @@ input_data=yaml.load(input_stream)
 confidence_of_finding_minimum_bisection=input_data["confidence"]
 max_picks=input_data["max_picks"]
 search_mod_alert=input_data["search_mod_alert"]
-number_of_iterations=input_data["number_of_iterations"]
+min_temp=input_data["min_temp"]
+max_number_of_iterations=input_data["max_number_of_iterations"]
 random_network_search_limit=input_data["random_network_search_limit"]
 valid_path_search_limit=input_data["valid_path_search_limit"]
 max_number_of_swaps=input_data["max_number_of_swaps"]
-temperature_value=input_data["temperature_value"]
+initial_temperature_value=input_data["temperature_value"]
 cooling_rate=input_data["cooling_rate"]
 number_of_searches=input_data["number_of_searches"]
 
@@ -72,10 +73,13 @@ input_stream.close() # done reading parameters input
 
 nopt.sanity_checks(number_of_routers,number_of_computers,number_of_ports_per_computer,number_of_ports_per_router)
 
+metric_best_of_all=10000000
+connections_best_of_all=[]
+
 all_search_results=[]
 for this_search_indx in range(number_of_searches):
   print this_search_indx
-
+  temperature_value=initial_temperature_value
   t_read_input = time.clock() - t_start # CPU seconds elapsed 
   #print("time to read input: "+str(t_read_input)+" seconds")
 
@@ -161,7 +165,7 @@ for this_search_indx in range(number_of_searches):
   tracker_mins_indx.append(0)
 
   temperature_indx=0
-  while (temperature_indx<number_of_iterations):
+  while (temperature_indx<max_number_of_iterations):
     t_find_altered_graph_previous=time.clock()
     found_valid_mutation=False
     search_indx=0
@@ -208,17 +212,17 @@ for this_search_indx in range(number_of_searches):
     if (use_simulated_annealing):
       # if metric_new<metric_best, then we have an improvement. Always accept that change.
       # if metric_new>metric_best, then we may accept that depending on random value between 0,1
-      if ( ((metric_best-metric_new)/temperature_value)>10 ):
-	sim_anneal_val=True
-      else:
+      if (metric_new<metric_best):
+	accept_change=True # this improvement was accepted without need to use exp()>random.random(). The close the temperature is to 0, the more likely this is the case
+      else: # either the temperature is far from 0 and there is an improvement, or the change is a decrease in performance.
 	try:
-	  sim_anneal_val = math.exp((metric_best-metric_new)/temperature_value) > random.random()
+	  accept_change = math.exp((metric_best-metric_new)/temperature_value) > random.random()
 	except OverflowError:    
 	  print("metric_best-metric_new="+str(metric_best-metric_new))
 	  print("temperature_value="+str(temperature_value))
 	  print("ratio:"+str((metric_best-metric_new)/temperature_value))
 	  exit()
-      if ( sim_anneal_val ): # mathworld.wolfram.com/SimulatedAnnealing.html
+      if ( accept_change ): # mathworld.wolfram.com/SimulatedAnnealing.html
 	#print("improvement accepted at temperature index "+str(temperature_indx))
 	tracker_mins.append(metric_new)
 	tracker_mins_indx.append(temperature_indx)
@@ -228,7 +232,7 @@ for this_search_indx in range(number_of_searches):
 	connections_best=connections_new
 	connections=connections_new
     else: # do not use simulated annealing
-      if (metric_new<metric_best):
+      if (metric_new<metric_best): # do not accept decrease in performance
 	tracker_mins.append(metric_new)
 	tracker_mins_indx.append(temperature_indx)
 	print("new best "+metric_name_label+" is "+str(metric_new)+" and old was "+str(metric_best))
@@ -238,11 +242,27 @@ for this_search_indx in range(number_of_searches):
 	connections=connections_new
 	
     temperature_value=cooling_rate*temperature_value # geometric cooling schedule
+    if (temperature_value<min_temp):
+      print("temp="+str(temperature_value))
+      temperature_indx=max_number_of_iterations+1
+      break
+
     temperature_indx=temperature_indx+1
     t_metric_elapsed=time.clock()-t_metric_start
     #print("time to determine metric: "+str(t_metric_elapsed)+" seconds. Total elapsed time: "+str(time.clock()-t_start)+" seconds")
+  nopt.done_searching(metric_initial,metric_best,connections_best,tracker_all,tracker_mins,tracker_mins_indx,metric_name_file,metric_name_label,t_start)
+  nopt.draw_computer_and_router_graph_pictures(connections,"final")  
+
   all_search_results.append(metric_best)  
-nopt.done_searching(metric_initial,metric_best,connections_best,tracker_all,tracker_mins,tracker_mins_indx,metric_name_file,metric_name_label,t_start)
-nopt.draw_computer_and_router_graph_pictures(connections,"final")  
-print all_search_results
+  if (metric_best<metric_best_of_all):
+    metric_best_of_all=metric_best
+    connections_best_of_all=connections_best
+  
+results_file=open("results_file",'w')
+results_file.write(str(all_search_results))
+results_file.close()
+#os.system('sed -i 's/\]//g' results_file')
+#os.system('sed -i 's/\[//g' results_file')
 print min(all_search_results)
+print metric_best_of_all
+print connections_best_of_all

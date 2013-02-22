@@ -687,12 +687,12 @@ def draw_computer_and_router_graph_pictures(connections,name):
   #plt.savefig("networkx_spectral_"+name+".png")
   plt.close()
   Gviz=G
-#  nx.draw_graphviz(Gviz,prog='neato')
+  nx.draw_graphviz(Gviz,prog='neato')
   # the following doesn't work because it gets over-written by write_dot()
   #stream=file('networkx_graphviz_'+name+'.dot','w')
   #stream.write('# neato -Tpng networkx_graphviz_'+name+'.dot > networkx_graphviz_'+name+'.png')
   #stream.close()
-#  nx.write_dot(Gviz,'networkx_graphviz_'+name+'.dot')
+  nx.write_dot(Gviz,'networkx_graphviz_'+name+'.dot')
   os.system('neato -Tpng networkx_graphviz_'+name+'.dot > networkx_graphviz_'+name+'.png')
   plt.close()
   
@@ -782,18 +782,7 @@ def generate_2D_mesh_network(number_of_rows,number_of_columns):
   Gcoordinates=nx.grid_2d_graph(number_of_rows,number_of_columns, periodic=False)
   # http://networkx.lanl.gov/reference/generated/networkx.relabel.convert_node_labels_to_integers.html#networkx.relabel.convert_node_labels_to_integers
   G=nx.convert_node_labels_to_integers(Gcoordinates,first_label=1)
-  # Add compute nodes to each router
-  # G.number_of_nodes()==number_of_rows*number_of_columns
-  for indx in range(1,G.number_of_nodes()+1):
-    G.add_edge(indx,indx*-1)
-  #return G
-  connections_temp=G.edges() # this yields connections_temp=[(1,2), (1,3), ...]
-  connections=[]
-  for pair in range(len(connections_temp)):
-    this_pair=[]
-    this_pair.append(connections_temp[pair][0])
-    this_pair.append(connections_temp[pair][1])
-    connections.append(this_pair) # this yields connections=[[1,1], [1,3], ...]
+  connections = add_computers_for_given_router_network(G)
   return connections
   
 #******************************************************************************
@@ -804,6 +793,17 @@ def generate_ND_toroidal_or_mesh_network(dimensions,toroidal_true_mesh_false):
   # http://networkx.lanl.gov/reference/generated/networkx.generators.classic.grid_graph.html
   Gcoordinates=nx.grid_graph(dim=dimensions, periodic=toroidal_true_mesh_false)
   G=nx.convert_node_labels_to_integers(Gcoordinates,first_label=1)
+  connections = add_computers_for_given_router_network(G)
+  return connections
+
+def generate_all_to_all_graph(number_of_routers):
+  # http://networkx.lanl.gov/archive/networkx-1.5/reference/generated/networkx.generators.classic.complete_graph.html#networkx.generators.classic.complete_graph
+  Grouters_shifted=nx.complete_graph(number_of_routers)
+  G=nx.convert_node_labels_to_integers(Grouters_shifted,first_label=1)
+  connections = add_computers_for_given_router_network(G)
+  return connections
+  
+def add_computers_for_given_router_network(G):
   # Add compute nodes to each router
   for indx in range(1,G.number_of_nodes()+1):
     G.add_edge(indx,indx*-1)
@@ -816,7 +816,7 @@ def generate_ND_toroidal_or_mesh_network(dimensions,toroidal_true_mesh_false):
     this_pair.append(connections_temp[pair][1])
     connections.append(this_pair) # this yields connections=[[1,1], [1,3], ...]
   return connections
-
+    
 #******************************************************************************
 # depends on "sanity_checks" "create_arrays_for_nodes" "plug_computers_in_routers" "plug_routers_into_remaining_routers"
 # output: "connections"
