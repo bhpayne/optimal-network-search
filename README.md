@@ -1,34 +1,40 @@
-== use ==
+# use
 
-# This script generates random graphs and produces plots of the graph
+ This script generates random graphs and produces plots of the graph
+```bash
 python generate_graph.py
-# Note: the parameters for the graph are currently hardcoded
+```
+The parameters for the graph are currently hardcoded
+```bash
 python generate_graphViz_plot.py
+```
 
-# not currently working:
+Not currently working:
+```bash
 python fitness_function_all_to_all_hops.py
 python fitness_function_bisection_bandwidth.py
 python fitness_function_AtoB_hops.py
 python make_permutations_to_graph.py
+```
+# required software
 
-== required software ==
-
-Python
-GraphViz
+* Python
+* GraphViz
 
 Tested on Ubuntu 12.04 64bit
 
-== example output ==
+# example output
 
 set the following parameters in "run_search.py"
+```
 number_of_routers=10
 number_of_ports_per_router=10
 number_of_computers=10
 number_of_ports_per_computer=1
 number_of_iterations=1000
-
+```
 Sample output:
-
+```
 bpayne@bpayne-Alien:~/optimal-network-search$ rm *.png; python run_search.py 
 [FN] probably redundant connections are all that is left
 [FN] connections:
@@ -40,24 +46,24 @@ remaining empty switch ports:
 initial average hop count is 3.04444444444
 new average hop count is 3.0
 new average hop count is 2.91111111111
+```
 
+The average hop count decreased due to random swaps of connections
 
-Note the average hop count decreased due to random swaps of connections
-
-== background ==
+# background
 
 The question motivating this project is
 "What is the topology of the network which results in the lowest transmission times for an all-to-all communication?"
 
 The parameters are
--number of switches
--number of compute nodes
--number of ports per switch
--number of ports per compute node
+* number of switches
+* number of compute nodes
+* number of ports per switch
+* number of ports per compute node
 Future parameters might be
--physical layout (3D racks and isles of racks)
--message size
--fault tolarance
+* physical layout (3D racks and isles of racks)
+* message size
+* fault tolarance
 
 Obviously a "fully-connected" (each node connects directly to every other node) is optimal, but given fewer ports than the number of nodes this is not possible.
 
@@ -66,23 +72,20 @@ Second-most optimal would be introducing one switch with n ports for n compute n
 Thus the optimal network topology depends on real-world factors such as switches available for purchase (should we buy a lots of 24 port switches, or more 1000 port switches), and how many ports should the compute node support?
 
 
-== task list ==
+# task list 
 
-write functions to generate other (standard) topologies - 2D mesh, 3D mesh, 2D torus, 3D torus, 6D torus, Dragonfly, Clos
-
-compare above listed standard topologies to theoretical scaling predictions and also to analytical predictions for metrics like hop count, bisection bandwidth
-
-figure out what actual topologies are at NSF resources -- Ranger, Kraken
+- [ ] write functions to generate other (standard) topologies - 2D mesh, 3D mesh, 2D torus, 3D torus, 6D torus, Dragonfly, Clos
+- [ ] compare above listed standard topologies to theoretical scaling predictions and also to analytical predictions for metrics like hop count, bisection bandwidth
+- [ ] figure out what actual topologies are at NSF resources -- Ranger, Kraken
 
 Q: does there exist a network topology which performs at least as well as current scientific topologies AND improves all-to-all performance?
 ie 
 http://networkx.lanl.gov/reference/generated/networkx.generators.geometric.navigable_small_world_graph.html
 
-== other resources ==
+# other resources
 
-http://code.google.com/p/python-graph/
-
-http://www.cs.nmsu.edu/~pfeiffer/classes/573/notes/topology.html
+* <http://code.google.com/p/python-graph/>
+* <http://www.cs.nmsu.edu/~pfeiffer/classes/573/notes/topology.html>
 
 http://gavinmhackeling.com/blog/2012/10/simulated-annealing-in-python/
 
